@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useBusiness } from "./businessContext";
 import { useDashboardState } from "./dashboardState";
+import { useLang } from "./language";
 import { computeMoneyMetrics } from "./transactions";
 import { forecastCash, type Forecast } from "./forecast";
 import { buildActions, type Action } from "./actions";
@@ -103,6 +104,7 @@ export function useOverview(): Overview {
   const money = useMoney();
   const inv = useInvoices();
   const { sentIds } = useDashboardState();
+  const { lang } = useLang();
 
   return useMemo(() => {
     const invoices = inv.data?.invoices ?? [];
@@ -114,9 +116,10 @@ export function useOverview(): Overview {
           metrics.avgWeeklyOutflow,
           metrics.avgWeeklyInflow,
           unpaid,
+          lang,
         )
       : null;
-    const actions = buildActions(invoices, metrics, forecast, sentIds);
+    const actions = buildActions(invoices, metrics, forecast, sentIds, lang);
     return {
       metrics,
       invoices,
@@ -125,5 +128,5 @@ export function useOverview(): Overview {
       actions,
       isLoading: money.isLoading || inv.isLoading,
     };
-  }, [money.data, money.isLoading, inv.data, inv.isLoading, sentIds]);
+  }, [money.data, money.isLoading, inv.data, inv.isLoading, sentIds, lang]);
 }

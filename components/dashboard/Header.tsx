@@ -5,7 +5,9 @@ import { motion } from "framer-motion";
 import { Logo } from "@/components/brand/Logo";
 import { BusinessSwitcher } from "./BusinessSwitcher";
 import { ExportMenu } from "./ExportMenu";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useBusiness } from "@/lib/businessContext";
+import { useLang } from "@/lib/language";
 import { cn } from "@/lib/utils";
 
 function CircleButton({
@@ -38,6 +40,7 @@ function CircleButton({
 
 export function Header() {
   const { activeBusiness } = useBusiness();
+  const { t } = useLang();
 
   return (
     <header className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
@@ -47,22 +50,21 @@ export function Header() {
         </span>
         <div>
           <BusinessSwitcher />
-          <h1 className="mt-3 text-hero font-bold text-ink">Good morning</h1>
+          <h1 className="mt-3 text-hero font-bold text-ink">{t("header.greeting")}</h1>
           <p className="text-body text-muted">
-            {activeBusiness?.industry
-              ? `${activeBusiness.industry} · `
-              : ""}
-            your cash flow at a glance
+            {activeBusiness?.industry ? `${activeBusiness.industry} · ` : ""}
+            {t("header.subtitle")}
           </p>
         </div>
       </div>
 
       <div className="flex items-center gap-3">
+        <LanguageSwitcher />
         {/* Full search pill on sm+; collapses to an icon button on mobile */}
         <div className="glass-hover hidden h-12 items-center gap-2 rounded-full border border-border bg-card pl-5 pr-1.5 shadow-soft sm:flex">
           <input
-            placeholder="Search invoices…"
-            aria-label="Search invoices"
+            placeholder={t("header.search")}
+            aria-label={t("header.search")}
             className="w-40 bg-transparent text-body text-ink outline-none placeholder:text-muted md:w-56"
           />
           <span className="grid h-9 w-9 place-items-center rounded-full bg-ink text-white">

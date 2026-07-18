@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { useOverview } from "@/lib/dashboardData";
 import { useDashboardState } from "@/lib/dashboardState";
 import { useBusiness } from "@/lib/businessContext";
+import { useLang } from "@/lib/language";
 import { reminderTemplate, waLink } from "@/lib/drafts";
 import { formatINR } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -19,10 +20,11 @@ export function MoneyInCard() {
   const { unpaid } = useOverview();
   const { markSent, sentIds } = useDashboardState();
   const { activeBusiness } = useBusiness();
+  const { t, lang } = useLang();
   const bizName = activeBusiness?.name ?? "Our team";
 
   function remind(inv: EnrichedInvoice) {
-    const msg = reminderTemplate("en", bizName, inv);
+    const msg = reminderTemplate(lang, bizName, inv);
     window.open(waLink(msg), "_blank", "noopener,noreferrer");
     markSent({ invoice: inv, message: msg, sentAt: new Date().toISOString() });
   }
@@ -36,8 +38,8 @@ export function MoneyInCard() {
     <Card id="sec-in" className="scroll-mt-6 flex flex-col sm:col-span-2">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-section font-semibold text-ink">Money coming in</h3>
-          <p className="text-caption text-muted">Customers who owe you money</p>
+          <h3 className="text-section font-semibold text-ink">{t("in.title")}</h3>
+          <p className="text-caption text-muted">{t("in.sub")}</p>
         </div>
         <span className="rounded-pill bg-success/10 px-3 py-1 text-caption font-semibold text-success">
           {formatINR(total)}
@@ -47,8 +49,8 @@ export function MoneyInCard() {
       {rows.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center py-8 text-center">
           <CheckCircle2 className="text-success" size={26} />
-          <p className="mt-2 text-body font-medium text-ink">Everyone has paid</p>
-          <p className="text-caption text-muted">No pending collections right now.</p>
+          <p className="mt-2 text-body font-medium text-ink">{t("in.everyonePaid")}</p>
+          <p className="text-caption text-muted">{t("in.noPending")}</p>
         </div>
       ) : (
         <div className="mt-3 space-y-2">
@@ -73,15 +75,15 @@ export function MoneyInCard() {
                 >
                   {formatINR(inv.amount)} ·{" "}
                   {inv.overdue
-                    ? `${Math.abs(inv.daysToDue)} days overdue`
-                    : `due in ${inv.daysToDue} day${inv.daysToDue === 1 ? "" : "s"}`}
+                    ? t("act.overdue", { days: Math.abs(inv.daysToDue) })
+                    : t("act.dueIn", { days: inv.daysToDue })}
                 </p>
               </div>
               <button
                 onClick={() => remind(inv)}
                 className="inline-flex shrink-0 items-center gap-1.5 rounded-pill bg-success px-4 py-2 text-caption font-semibold text-white transition hover:bg-success/90"
               >
-                <MessageCircle size={14} /> WhatsApp
+                <MessageCircle size={14} /> {t("in.whatsapp")}
               </button>
             </motion.div>
           ))}

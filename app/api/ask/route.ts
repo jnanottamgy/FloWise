@@ -101,11 +101,14 @@ export async function POST(req: NextRequest) {
   };
   const fallback = deterministicAnswer(question, askCtx);
 
+  const lang = typeof body.lang === "string" ? body.lang : "en";
+  const langName = lang === "hi" ? "Hindi" : lang === "kn" ? "Kannada" : "English";
+
   const context = buildContext(business, money);
   const prompt =
     `You are FloWise, a warm, plain-talking money assistant for an Indian small business owner. ` +
-    `Answer the owner's question using ONLY the data below. Reply in ONE short paragraph (max 3 sentences), ` +
-    `in simple language, using rupee figures. If the data does not contain the answer, say so briefly.\n\n` +
+    `Answer the owner's question using ONLY the data below. Reply in ${langName}, in ONE short paragraph ` +
+    `(max 3 sentences), in simple language, keeping the rupee figures. If the data does not contain the answer, say so briefly.\n\n` +
     `DATA:\n${context}\n\nQUESTION: ${question}`;
 
   const answer = await callGemma(prompt, fallback);

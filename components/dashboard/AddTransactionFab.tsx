@@ -4,6 +4,7 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, Briefcase, MessageSquareText, Plus, User, X } from "lucide-react";
 import { useDashboardState } from "@/lib/dashboardState";
+import { useLang } from "@/lib/language";
 import { parseQuickEntry } from "@/lib/parseStatement";
 import { TODAY } from "@/lib/riskEngine";
 import { formatINR } from "@/lib/format";
@@ -14,6 +15,7 @@ type PendingTxn = Omit<Transaction, "scope">;
 
 export function AddTransactionFab() {
   const { addTransactions } = useDashboardState();
+  const { t } = useLang();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<"entry" | "classify">("entry");
   const [pending, setPending] = useState<PendingTxn | null>(null);
@@ -91,7 +93,7 @@ export function AddTransactionFab() {
         aria-label="Add transaction"
         className="fixed bottom-24 right-5 z-40 inline-flex items-center gap-2 rounded-pill bg-olive px-5 py-4 text-body font-semibold text-white shadow-card transition hover:bg-olive-dark md:bottom-6 md:right-6"
       >
-        <Plus size={20} /> <span className="hidden sm:inline">Add money</span>
+        <Plus size={20} /> <span className="hidden sm:inline">{t("fab.add")}</span>
       </motion.button>
 
       <AnimatePresence>

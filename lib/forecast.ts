@@ -2,7 +2,8 @@
 // Pure + deterministic. Nets ongoing income against outgo so it isn't doom-y.
 import type { EnrichedInvoice } from "./types";
 import { TODAY, daysBetween } from "./riskEngine";
-import { formatDate, formatINR } from "./format";
+import { formatDate } from "./format";
+import { tf, type Lang } from "./i18n";
 
 function isoAddDays(iso: string, n: number): string {
   const d = new Date(`${iso}T00:00:00Z`);
@@ -40,6 +41,7 @@ export function forecastCash(
   avgWeeklyOutflow: number,
   avgWeeklyInflow: number,
   unpaid: EnrichedInvoice[],
+  lang: Lang = "en",
 ): Forecast {
   // Net daily burn (negative = the business is cash-positive and growing).
   const netDaily = (avgWeeklyOutflow - avgWeeklyInflow) / 7;
@@ -92,10 +94,10 @@ export function forecastCash(
   const dipDate = formatDate(isoAddDays(TODAY, cappedSafe));
   const explanation =
     status === "healthy"
-      ? `You're on track — your cash stays healthy for the next 90 days.`
+      ? tf(lang, "fc.healthy")
       : status === "watch"
-        ? `You're comfortable for about ${cappedSafe} days, but cash gets tight around ${dipDate} if collections slow down. Bringing in one payment early keeps you safe.`
-        : `Heads up — cash could run short in about ${cappedSafe} days (around ${dipDate}). Collect a couple of payments now to stay safe.`;
+        ? tf(lang, "fc.watch", { days: cappedSafe, date: dipDate })
+        : tf(lang, "fc.risky", { days: cappedSafe, date: dipDate });
 
   return {
     todayCash: Math.round(balances[0]),

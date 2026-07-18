@@ -3,6 +3,7 @@
 import { ArrowUpRight, Repeat } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useOverview } from "@/lib/dashboardData";
+import { useLang } from "@/lib/language";
 import { formatINR } from "@/lib/format";
 import { categoryLabel } from "@/lib/labels";
 
@@ -18,6 +19,7 @@ const FRIENDLY: Record<string, string> = {
 
 export function MoneyOutCard() {
   const { metrics: m } = useOverview();
+  const { t } = useLang();
 
   const bills = (m?.recurring ?? [])
     .filter((r) => r.scope === "business")
@@ -28,8 +30,8 @@ export function MoneyOutCard() {
     <Card id="sec-out" className="scroll-mt-6 flex flex-col sm:col-span-2">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-section font-semibold text-ink">Money going out</h3>
-          <p className="text-caption text-muted">Bills you pay every month</p>
+          <h3 className="text-section font-semibold text-ink">{t("out.title")}</h3>
+          <p className="text-caption text-muted">{t("out.sub")}</p>
         </div>
         <span className="rounded-pill bg-black/[0.04] px-3 py-1 text-caption font-semibold text-ink">
           {formatINR(total)}/mo
@@ -55,7 +57,7 @@ export function MoneyOutCard() {
                   {FRIENDLY[r.category] ?? r.counterparty}
                 </p>
                 <p className="flex items-center gap-1 text-caption text-muted">
-                  <Repeat size={12} /> {categoryLabel(r.category)} · every month
+                  <Repeat size={12} /> {categoryLabel(r.category)} · {t("out.everyMonth")}
                 </p>
               </div>
               <span className="shrink-0 text-body font-semibold text-ink">

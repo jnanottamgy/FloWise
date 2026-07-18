@@ -12,11 +12,13 @@ import { ChaseListCard } from "./ChaseListCard";
 import { TemplatesCard } from "./TemplatesCard";
 import { CreditCheckCard } from "./CreditCheckCard";
 import { InProgressTracker } from "./InProgressTracker";
+import { useLang } from "@/lib/language";
 import { cn } from "@/lib/utils";
 
 // Everything power-users want, tucked away so the default view stays calm.
 export function MoreDetails() {
   const [open, setOpen] = useState(false);
+  const { t } = useLang();
 
   return (
     <div id="sec-more" className="scroll-mt-6 sm:col-span-2 xl:col-span-4">
@@ -30,11 +32,9 @@ export function MoreDetails() {
           </span>
           <span className="text-left">
             <span className="block text-body font-semibold text-ink">
-              More details
+              {t("more.title")}
             </span>
-            <span className="block text-caption text-muted">
-              Charts, all transactions, tax drawer, reminders, templates &amp; credit
-            </span>
+            <span className="block text-caption text-muted">{t("more.sub")}</span>
           </span>
         </span>
         <ChevronDown

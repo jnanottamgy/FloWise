@@ -16,11 +16,12 @@ export function waLink(text: string): string {
   return `https://wa.me/?text=${encodeURIComponent(text)}`;
 }
 
-export type ReminderLang = "en" | "hi" | "hinglish";
+export type ReminderLang = "en" | "hi" | "hinglish" | "kn";
 
 export const REMINDER_LANGS: { key: ReminderLang; label: string }[] = [
   { key: "en", label: "English" },
   { key: "hi", label: "हिन्दी" },
+  { key: "kn", label: "ಕನ್ನಡ" },
   { key: "hinglish", label: "Hinglish" },
 ];
 
@@ -45,6 +46,12 @@ export function reminderTemplate(
       ? `${due} ko due tha aur ab ${overdue} din late hai`
       : `${due} ko due hai`;
     return `Namaste ${inv.client}, chhoti si yaad — invoice ${inv.id} ka ${amt} ${state}. Payment date bata dijiye? Thanks, ${name}.`;
+  }
+  if (lang === "kn") {
+    const state = overdue
+      ? `${due} ಗೆ ಪಾವತಿಯಾಗಬೇಕಿತ್ತು, ಈಗ ${overdue} ದಿನ ಬಾಕಿ ಇದೆ`
+      : `${due} ಗೆ ಪಾವತಿಯಾಗಬೇಕು`;
+    return `ನಮಸ್ಕಾರ ${inv.client}, ಒಂದು ಸೌಮ್ಯ ಜ್ಞಾಪನೆ — ಇನ್‌ವಾಯ್ಸ್ ${inv.id} ನ ${amt} ${state}. ದಯವಿಟ್ಟು ಪಾವತಿ ದಿನಾಂಕ ತಿಳಿಸಿ. ಧನ್ಯವಾದಗಳು, ${name}.`;
   }
   const state = overdue
     ? `was due on ${due} and is now ${overdue} days overdue`

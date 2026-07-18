@@ -5,11 +5,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Landmark, Package, Repeat } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useOverview } from "@/lib/dashboardData";
+import { useLang } from "@/lib/language";
 import { formatINR } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export function CashTodayHero() {
   const { metrics: m, forecast } = useOverview();
+  const { t } = useLang();
   const [open, setOpen] = useState(false);
 
   if (!m) {
@@ -26,12 +28,13 @@ export function CashTodayHero() {
       : status === "watch"
         ? { num: "text-ink", pill: "bg-warning/15 text-warning", dot: "bg-warning" }
         : { num: "text-error", pill: "bg-error/10 text-error", dot: "bg-error" };
+  const daysStr = safeDays >= 90 ? "90+" : String(safeDays);
   const msg =
     status === "healthy"
-      ? `Enough cash for the next ${safeDays >= 90 ? "90+" : safeDays} days`
+      ? t("hero.enough", { days: daysStr })
       : status === "watch"
-        ? `Comfortable, but keep an eye on cash in about ${safeDays} days`
-        : `Cash may run short in about ${safeDays} days`;
+        ? t("hero.watch", { days: safeDays })
+        : t("hero.short", { days: safeDays });
 
   return (
     <Card
@@ -39,8 +42,8 @@ export function CashTodayHero() {
       className="scroll-mt-6 flex flex-col items-center py-8 text-center sm:col-span-2 xl:col-span-4"
     >
       <p className="text-body font-medium text-muted">
-        Cash available today
-        <span className="text-muted/70"> · free to spend</span>
+        {t("hero.available")}
+        <span className="text-muted/70"> · {t("hero.free")}</span>
       </p>
 
       <p
@@ -67,7 +70,7 @@ export function CashTodayHero() {
         onClick={() => setOpen((v) => !v)}
         className="mt-4 inline-flex items-center gap-1 text-caption font-medium text-muted transition hover:text-ink"
       >
-        {open ? "Hide" : "View"} details
+        {open ? t("hero.hide") : t("hero.view")}
         <ChevronDown size={14} className={cn("transition", open && "rotate-180")} />
       </button>
 
@@ -80,9 +83,9 @@ export function CashTodayHero() {
             className="w-full overflow-hidden"
           >
             <div className="mx-auto mt-4 grid max-w-xl grid-cols-3 gap-2">
-              <Detail icon={Landmark} label="In the bank" value={formatINR(m.bankBalance)} />
-              <Detail icon={Package} label="Tied in stock" value={`− ${formatINR(m.lockedInStock)}`} />
-              <Detail icon={Repeat} label="Regular bills" value={`− ${formatINR(m.committedRecurring)}`} />
+              <Detail icon={Landmark} label={t("hero.inBank")} value={formatINR(m.bankBalance)} />
+              <Detail icon={Package} label={t("hero.stock")} value={`− ${formatINR(m.lockedInStock)}`} />
+              <Detail icon={Repeat} label={t("hero.bills")} value={`− ${formatINR(m.committedRecurring)}`} />
             </div>
           </motion.div>
         )}

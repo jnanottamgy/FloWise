@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { CheckCircle2, TriangleAlert } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useOverview } from "@/lib/dashboardData";
+import { useLang } from "@/lib/language";
 import { formatINRCompact } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -23,6 +24,7 @@ function Horizon({ label, value }: { label: string; value: number }) {
 
 export function ForecastCard() {
   const { forecast: f } = useOverview();
+  const { t } = useLang();
 
   if (!f) {
     return <Card id="sec-forecast" className="scroll-mt-6 h-80 animate-pulse bg-black/[0.02] sm:col-span-2" />;
@@ -31,17 +33,15 @@ export function ForecastCard() {
   return (
     <Card id="sec-forecast" className="scroll-mt-6 flex flex-col sm:col-span-2">
       <div>
-        <h3 className="text-section font-semibold text-ink">Will I run out of cash?</h3>
-        <p className="text-caption text-muted">
-          Money in your bank, over the next 90 days
-        </p>
+        <h3 className="text-section font-semibold text-ink">{t("fc.title")}</h3>
+        <p className="text-caption text-muted">{t("fc.sub")}</p>
       </div>
 
       <div className="mt-3 grid grid-cols-4 gap-2">
-        <Horizon label="Today" value={f.horizons.d0} />
-        <Horizon label="7 days" value={f.horizons.d7} />
-        <Horizon label="30 days" value={f.horizons.d30} />
-        <Horizon label="90 days" value={f.horizons.d90} />
+        <Horizon label={t("fc.today")} value={f.horizons.d0} />
+        <Horizon label={t("fc.7")} value={f.horizons.d7} />
+        <Horizon label={t("fc.30")} value={f.horizons.d30} />
+        <Horizon label={t("fc.90")} value={f.horizons.d90} />
       </div>
 
       <div className="mt-3 h-40 w-full">

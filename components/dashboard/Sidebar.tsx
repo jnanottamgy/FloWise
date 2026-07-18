@@ -15,20 +15,21 @@ import {
 } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { useBusiness } from "@/lib/businessContext";
+import { useLang } from "@/lib/language";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
   icon: LucideIcon;
-  label: string;
+  i18n: string;
   target: string; // element id, or "top"
 }
 
 const NAV: NavItem[] = [
-  { icon: LayoutGrid, label: "Home", target: "top" },
-  { icon: ListChecks, label: "To-do", target: "sec-actions" },
-  { icon: Users, label: "Customers", target: "sec-in" },
-  { icon: TrendingUp, label: "Cash flow", target: "sec-forecast" },
-  { icon: MoreHorizontal, label: "More", target: "sec-more" },
+  { icon: LayoutGrid, i18n: "nav.home", target: "top" },
+  { icon: ListChecks, i18n: "nav.todo", target: "sec-actions" },
+  { icon: Users, i18n: "nav.customers", target: "sec-in" },
+  { icon: TrendingUp, i18n: "nav.cash", target: "sec-forecast" },
+  { icon: MoreHorizontal, i18n: "nav.more", target: "sec-more" },
 ];
 
 export function scrollToSection(target: string) {
@@ -44,7 +45,8 @@ export function scrollToSection(target: string) {
 export function Sidebar() {
   const router = useRouter();
   const { clearActive } = useBusiness();
-  const [active, setActive] = useState("Dashboard");
+  const { t } = useLang();
+  const [active, setActive] = useState("top");
 
   return (
     <aside className="sticky top-4 hidden h-[calc(100vh-2rem)] min-h-[560px] shrink-0 md:block">
@@ -56,18 +58,19 @@ export function Sidebar() {
         <nav className="flex flex-col items-center gap-2">
           {NAV.map((item) => {
             const Icon = item.icon;
-            const isActive = active === item.label;
+            const label = t(item.i18n);
+            const isActive = active === item.target;
             return (
               <motion.button
-                key={item.label}
+                key={item.target}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.96 }}
                 onClick={() => {
-                  setActive(item.label);
+                  setActive(item.target);
                   scrollToSection(item.target);
                 }}
-                title={item.label}
-                aria-label={item.label}
+                title={label}
+                aria-label={label}
                 aria-current={isActive ? "page" : undefined}
                 className="relative grid h-11 w-11 place-items-center rounded-2xl transition"
               >

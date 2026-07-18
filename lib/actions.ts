@@ -2,6 +2,7 @@
 import type { EnrichedInvoice, MoneyMetrics } from "./types";
 import type { Forecast } from "./forecast";
 import { formatINR } from "./format";
+import { tf, type Lang } from "./i18n";
 
 export type ActionType = "collect" | "remind" | "pay" | "view";
 export type Urgency = "urgent" | "warning" | "info";
@@ -24,6 +25,7 @@ export function buildActions(
   money: MoneyMetrics | null,
   forecast: Forecast | null,
   sentIds: Set<string>,
+  lang: Lang = "en",
 ): Action[] {
   const actions: Action[] = [];
   const open = invoices.filter((i) => i.risk !== "green" && !sentIds.has(i.id));
@@ -33,9 +35,9 @@ export function buildActions(
     actions.push({
       id: `collect-${inv.id}`,
       urgency: "urgent",
-      title: `Collect ${formatINR(inv.amount)} from ${inv.client}`,
-      sub: `${Math.abs(inv.daysToDue)} days overdue`,
-      actionLabel: "Collect",
+      title: tf(lang, "act.collectFrom", { amount: formatINR(inv.amount), client: inv.client }),
+      sub: tf(lang, "act.overdue", { days: Math.abs(inv.daysToDue) }),
+      actionLabel: tf(lang, "act.collect"),
       actionType: "collect",
       invoiceId: inv.id,
     });
@@ -46,9 +48,9 @@ export function buildActions(
     actions.push({
       id: "lowcash",
       urgency: forecast.status === "risky" ? "urgent" : "warning",
-      title: `Cash gets tight in about ${forecast.safeDays} days`,
-      sub: "Collect a payment early to stay safe",
-      actionLabel: "See why",
+      title: tf(lang, "act.lowCash", { days: forecast.safeDays }),
+      sub: tf(lang, "act.lowCashSub"),
+      actionLabel: tf(lang, "act.seeWhy"),
       actionType: "view",
     });
   }
@@ -58,9 +60,9 @@ export function buildActions(
     actions.push({
       id: `remind-${inv.id}`,
       urgency: "warning",
-      title: `Remind ${inv.client} — ${formatINR(inv.amount)}`,
-      sub: `due in ${inv.daysToDue} day${inv.daysToDue === 1 ? "" : "s"}`,
-      actionLabel: "Remind",
+      title: tf(lang, "act.remindClient", { client: inv.client, amount: formatINR(inv.amount) }),
+      sub: tf(lang, "act.dueIn", { days: inv.daysToDue }),
+      actionLabel: tf(lang, "act.remind"),
       actionType: "remind",
       invoiceId: inv.id,
     });
@@ -74,9 +76,9 @@ export function buildActions(
     actions.push({
       id: `pay-${bill.counterparty}`,
       urgency: "info",
-      title: `Pay ${bill.counterparty} — about ${formatINR(bill.monthlyAmount)}`,
-      sub: "regular monthly bill",
-      actionLabel: "Mark paid",
+      title: tf(lang, "act.payBill", { name: bill.counterparty, amount: formatINR(bill.monthlyAmount) }),
+      sub: tf(lang, "act.monthlyBill"),
+      actionLabel: tf(lang, "act.markPaid"),
       actionType: "pay",
       pay: { name: bill.counterparty, amount: bill.monthlyAmount, category: bill.category },
     });

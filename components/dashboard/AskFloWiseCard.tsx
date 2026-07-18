@@ -6,22 +6,18 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Loader2, Send, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useBusiness } from "@/lib/businessContext";
+import { useLang } from "@/lib/language";
 import { postAsk } from "@/lib/api";
 
-const SUGGESTIONS = [
-  "What should I do today?",
-  "Who owes me money?",
-  "Can I buy inventory this week?",
-  "Will I have enough for salaries?",
-  "Why is my cash reducing?",
-];
+const SUGGESTION_KEYS = ["ask.q1", "ask.q2", "ask.q3", "ask.q4", "ask.q5"];
 
 export function AskFloWiseCard() {
   const { activeBusiness } = useBusiness();
+  const { t, lang } = useLang();
   const [question, setQuestion] = useState("");
 
   const ask = useMutation({
-    mutationFn: (q: string) => postAsk(activeBusiness!, q),
+    mutationFn: (q: string) => postAsk(activeBusiness!, q, lang),
   });
 
   function submit(q: string) {
@@ -38,10 +34,8 @@ export function AskFloWiseCard() {
           <Sparkles size={16} />
         </span>
         <div>
-          <h3 className="text-section font-semibold text-ink">Ask FloWise</h3>
-          <p className="text-caption text-muted">
-            Ask anything about your money — answered from your own numbers by Gemma
-          </p>
+          <h3 className="text-section font-semibold text-ink">{t("ask.title")}</h3>
+          <p className="text-caption text-muted">{t("ask.sub")}</p>
         </div>
       </div>
 
@@ -55,7 +49,7 @@ export function AskFloWiseCard() {
         <input
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
-          placeholder="e.g. Who owes me the most right now?"
+          placeholder={t("ask.q2")}
           className="h-12 flex-1 rounded-pill border border-border bg-bg px-5 text-body text-ink outline-none transition focus:border-olive focus:ring-2 focus:ring-olive/30"
         />
         <button
@@ -64,20 +58,20 @@ export function AskFloWiseCard() {
           className="inline-flex items-center gap-2 rounded-pill bg-olive px-5 text-body font-semibold text-white transition hover:bg-olive-dark disabled:opacity-50"
         >
           {ask.isPending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-          Ask
+          {t("ask.button")}
         </button>
       </form>
 
       {/* Suggestions */}
       <div className="mt-3 flex flex-wrap gap-2">
-        {SUGGESTIONS.map((s) => (
+        {SUGGESTION_KEYS.map((k) => (
           <button
-            key={s}
-            onClick={() => submit(s)}
+            key={k}
+            onClick={() => submit(t(k))}
             disabled={ask.isPending}
             className="rounded-pill border border-border px-3 py-1.5 text-caption text-muted transition hover:border-olive/40 hover:text-olive disabled:opacity-50"
           >
-            {s}
+            {t(k)}
           </button>
         ))}
       </div>
@@ -94,7 +88,7 @@ export function AskFloWiseCard() {
             {ask.isPending ? (
               <div className="flex items-center gap-2 text-caption text-muted">
                 <Loader2 size={14} className="animate-spin text-olive" />
-                FloWise is thinking…
+                {t("ask.thinking")}
               </div>
             ) : (
               <p className="text-body leading-relaxed text-ink/85">{ask.data?.answer}</p>
