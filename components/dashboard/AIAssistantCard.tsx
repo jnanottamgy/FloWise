@@ -16,7 +16,7 @@ export function AIAssistantCard() {
   const refining = isFetching && !insight;
 
   return (
-    <Card className="flex flex-col">
+    <Card id="sec-ai" className="scroll-mt-6 flex flex-col">
       {/* Glowing AI orb */}
       <div className="relative mx-auto mt-2 grid h-20 w-20 place-items-center">
         <motion.span

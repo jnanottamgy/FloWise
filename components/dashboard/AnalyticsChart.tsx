@@ -53,7 +53,7 @@ export function AnalyticsChart({ metrics }: { metrics: Metrics }) {
   const data = metrics.monthly.slice(-RANGE_WINDOW[range]);
 
   return (
-    <Card className="sm:col-span-2">
+    <Card id="sec-analytics" className="scroll-mt-6 sm:col-span-2">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
           <h3 className="text-section font-semibold text-ink">Cash Flow</h3>

@@ -10,7 +10,7 @@ export function InProgressTracker() {
   const { sentItems } = useDashboardState();
 
   return (
-    <Card className="sm:col-span-2 xl:col-span-4">
+    <Card id="sec-documents" className="scroll-mt-6 sm:col-span-2 xl:col-span-4">
       <div className="mb-4 flex items-center justify-between">
         <h3 className="text-section font-semibold text-ink">In progress</h3>
         <span className="text-caption text-muted">

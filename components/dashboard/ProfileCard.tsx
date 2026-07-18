@@ -22,7 +22,7 @@ export function ProfileCard({
   metrics: Metrics;
 }) {
   return (
-    <Card className="flex flex-col items-center text-center">
+    <Card id="sec-clients" className="scroll-mt-6 flex flex-col items-center text-center">
       <div className="grid h-16 w-16 place-items-center rounded-full bg-gradient-to-br from-olive to-sage text-section font-semibold text-white">
         {business.name.slice(0, 1)}
       </div>

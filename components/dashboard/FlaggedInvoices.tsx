@@ -29,7 +29,7 @@ export function FlaggedInvoices() {
     .sort((a, b) => rank[a.risk] - rank[b.risk] || b.amount - a.amount);
 
   return (
-    <Card className="sm:col-span-2">
+    <Card id="sec-invoices" className="scroll-mt-6 sm:col-span-2">
       <div className="mb-4 flex items-center justify-between">
         <h3 className="text-section font-semibold text-ink">Flagged invoices</h3>
         <span className="text-caption text-muted">

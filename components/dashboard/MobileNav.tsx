@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   BarChart3,
   FileText,
@@ -10,18 +11,20 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { scrollToSection } from "./Sidebar";
 
-const ITEMS: { icon: LucideIcon; label: string; active?: boolean }[] = [
-  { icon: LayoutGrid, label: "Dashboard", active: true },
-  { icon: FileText, label: "Invoices" },
-  { icon: Sparkles, label: "AI Workspace" },
-  { icon: BarChart3, label: "Analytics" },
-  { icon: Users, label: "Clients" },
-  { icon: FolderClosed, label: "Documents" },
+const ITEMS: { icon: LucideIcon; label: string; target: string }[] = [
+  { icon: LayoutGrid, label: "Dashboard", target: "top" },
+  { icon: FileText, label: "Invoices", target: "sec-invoices" },
+  { icon: Sparkles, label: "AI Workspace", target: "sec-ai" },
+  { icon: BarChart3, label: "Analytics", target: "sec-analytics" },
+  { icon: Users, label: "Clients", target: "sec-clients" },
+  { icon: FolderClosed, label: "Documents", target: "sec-documents" },
 ];
 
 /** Collapsed sidebar for small screens: a horizontal icon rail. */
 export function MobileNav() {
+  const [active, setActive] = useState("Dashboard");
   return (
     <nav
       aria-label="Primary"
@@ -29,14 +32,19 @@ export function MobileNav() {
     >
       {ITEMS.map((it) => {
         const Icon = it.icon;
+        const isActive = active === it.label;
         return (
           <button
             key={it.label}
             aria-label={it.label}
-            aria-current={it.active ? "page" : undefined}
+            aria-current={isActive ? "page" : undefined}
+            onClick={() => {
+              setActive(it.label);
+              scrollToSection(it.target);
+            }}
             className={cn(
               "grid h-10 w-10 shrink-0 place-items-center rounded-full transition",
-              it.active ? "bg-ink text-white" : "text-muted hover:bg-black/[0.04]",
+              isActive ? "bg-ink text-white" : "text-muted hover:bg-black/[0.04]",
             )}
           >
             <Icon size={18} strokeWidth={1.8} />

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
@@ -20,49 +21,32 @@ import { cn } from "@/lib/utils";
 interface NavItem {
   icon: LucideIcon;
   label: string;
-  active?: boolean;
+  target: string; // element id, or "top"
 }
 
 const NAV: NavItem[] = [
-  { icon: LayoutGrid, label: "Dashboard", active: true },
-  { icon: FileText, label: "Invoices" },
-  { icon: Sparkles, label: "AI Workspace" },
-  { icon: BarChart3, label: "Analytics" },
-  { icon: Users, label: "Clients" },
-  { icon: FolderClosed, label: "Documents" },
+  { icon: LayoutGrid, label: "Dashboard", target: "top" },
+  { icon: FileText, label: "Invoices", target: "sec-invoices" },
+  { icon: Sparkles, label: "AI Workspace", target: "sec-ai" },
+  { icon: BarChart3, label: "Analytics", target: "sec-analytics" },
+  { icon: Users, label: "Clients", target: "sec-clients" },
+  { icon: FolderClosed, label: "Documents", target: "sec-documents" },
 ];
 
-function IconButton({
-  item,
-  onClick,
-}: {
-  item: NavItem;
-  onClick?: () => void;
-}) {
-  const Icon = item.icon;
-  return (
-    <motion.button
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.96 }}
-      onClick={onClick}
-      title={item.label}
-      aria-label={item.label}
-      aria-current={item.active ? "page" : undefined}
-      className={cn(
-        "relative grid h-11 w-11 place-items-center rounded-2xl transition",
-        item.active
-          ? "bg-ink text-white shadow-soft"
-          : "text-muted hover:bg-black/[0.04] hover:text-ink",
-      )}
-    >
-      <Icon size={20} strokeWidth={1.8} />
-    </motion.button>
-  );
+export function scrollToSection(target: string) {
+  if (target === "top") {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    return;
+  }
+  document
+    .getElementById(target)
+    ?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 export function Sidebar() {
   const router = useRouter();
   const { clearActive } = useBusiness();
+  const [active, setActive] = useState("Dashboard");
 
   return (
     <aside className="sticky top-4 hidden h-[calc(100vh-2rem)] min-h-[560px] shrink-0 md:block">
@@ -72,28 +56,66 @@ export function Sidebar() {
         </span>
 
         <nav className="flex flex-col items-center gap-2">
-          {NAV.map((item) => (
-            <IconButton
-              key={item.label}
-              item={item}
-              onClick={
-                item.active ? () => router.push("/dashboard") : undefined
-              }
-            />
-          ))}
+          {NAV.map((item) => {
+            const Icon = item.icon;
+            const isActive = active === item.label;
+            return (
+              <motion.button
+                key={item.label}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.96 }}
+                onClick={() => {
+                  setActive(item.label);
+                  scrollToSection(item.target);
+                }}
+                title={item.label}
+                aria-label={item.label}
+                aria-current={isActive ? "page" : undefined}
+                className="relative grid h-11 w-11 place-items-center rounded-2xl transition"
+              >
+                {isActive && (
+                  <motion.span
+                    layoutId="sidebar-active"
+                    className="absolute inset-0 rounded-2xl bg-ink shadow-soft"
+                    transition={{ type: "spring", stiffness: 500, damping: 34 }}
+                  />
+                )}
+                <Icon
+                  size={20}
+                  strokeWidth={1.8}
+                  className={cn(
+                    "relative z-10 transition-colors",
+                    isActive ? "text-white" : "text-muted",
+                  )}
+                />
+              </motion.button>
+            );
+          })}
         </nav>
 
         <div className="flex-1" />
 
         <div className="flex flex-col items-center gap-2">
-          <IconButton item={{ icon: Settings, label: "Settings" }} />
-          <IconButton
-            item={{ icon: LogOut, label: "Log out" }}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            title="Settings"
+            aria-label="Settings"
+            className="grid h-11 w-11 place-items-center rounded-2xl text-muted transition hover:bg-black/[0.04] hover:text-ink"
+          >
+            <Settings size={20} strokeWidth={1.8} />
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            title="Log out"
+            aria-label="Log out"
             onClick={() => {
               clearActive();
               router.push("/");
             }}
-          />
+            className="grid h-11 w-11 place-items-center rounded-2xl text-muted transition hover:bg-black/[0.04] hover:text-ink"
+          >
+            <LogOut size={20} strokeWidth={1.8} />
+          </motion.button>
           <div className="mt-2 grid h-10 w-10 place-items-center overflow-hidden rounded-full bg-gradient-to-br from-olive to-sage text-caption font-semibold text-white">
             AT
           </div>
