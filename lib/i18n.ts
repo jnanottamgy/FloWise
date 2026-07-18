@@ -151,6 +151,11 @@ export const STRINGS: Record<string, Entry> = {
   "out.title": { en: "Money going out", hi: "जाने वाला पैसा", kn: "ಹೋಗುವ ಹಣ" },
   "out.sub": { en: "Bills you pay every month", hi: "हर महीने के बिल", kn: "ಪ್ರತಿ ತಿಂಗಳು ಪಾವತಿಸುವ ಬಿಲ್" },
   "out.everyMonth": { en: "every month", hi: "हर महीने", kn: "ಪ್ರತಿ ತಿಂಗಳು" },
+  "out.noBills": {
+    en: "No regular bills detected yet.",
+    hi: "अभी तक कोई नियमित बिल नहीं मिला।",
+    kn: "ಇನ್ನೂ ಯಾವುದೇ ನಿಯಮಿತ ಬಿಲ್ ಕಂಡುಬಂದಿಲ್ಲ.",
+  },
 
   // Ask
   "ask.title": { en: "Ask FloWise", hi: "फ्लोवाइज़ से पूछें", kn: "ಫ್ಲೋವೈಸ್‌ಗೆ ಕೇಳಿ" },
@@ -182,6 +187,40 @@ export const STRINGS: Record<string, Entry> = {
     kn: "ಚಾರ್ಟ್‌ಗಳು, ಎಲ್ಲಾ ವಹಿವಾಟುಗಳು, ತೆರಿಗೆ, ಜ್ಞಾಪನೆ, ಟೆಂಪ್ಲೇಟ್ ಮತ್ತು ಕ್ರೆಡಿಟ್",
   },
   "fab.add": { en: "Add money", hi: "पैसा जोड़ें", kn: "ಹಣ ಸೇರಿಸಿ" },
+  "fab.title": { en: "Add a transaction", hi: "लेन-देन जोड़ें", kn: "ವಹಿವಾಟು ಸೇರಿಸಿ" },
+  "fab.classifyTitle": {
+    en: "Is this business or personal?",
+    hi: "यह व्यापार का है या निजी?",
+    kn: "ಇದು ವ್ಯಾಪಾರವೇ ಅಥವಾ ವೈಯಕ್ತಿಕವೇ?",
+  },
+  "fab.pasteSms": { en: "Paste a bank / UPI SMS", hi: "बैंक / UPI SMS पेस्ट करें", kn: "ಬ್ಯಾಂಕ್ / UPI SMS ಅಂಟಿಸಿ" },
+  "fab.readSms": { en: "Read SMS", hi: "SMS पढ़ें", kn: "SMS ಓದಿ" },
+  "fab.cancel": { en: "Cancel", hi: "रद्द करें", kn: "ರದ್ದುಮಾಡಿ" },
+  "fab.smsPlaceholder": {
+    en: "Paste your bank/UPI SMS here — e.g. Rs.5000 credited… from MERIDIAN RETAIL",
+    hi: "अपना बैंक/UPI SMS यहाँ पेस्ट करें — जैसे Rs.5000 credited… from MERIDIAN RETAIL",
+    kn: "ನಿಮ್ಮ ಬ್ಯಾಂಕ್/UPI SMS ಇಲ್ಲಿ ಅಂಟಿಸಿ — ಉದಾ. Rs.5000 credited… from MERIDIAN RETAIL",
+  },
+  "fab.smsError": {
+    en: "Couldn't read that — please enter it below.",
+    hi: "समझ नहीं आया — कृपया नीचे खुद भरें।",
+    kn: "ಅರ್ಥವಾಗಲಿಲ್ಲ — ದಯವಿಟ್ಟು ಕೆಳಗೆ ನೀವೇ ಭರ್ತಿ ಮಾಡಿ.",
+  },
+  "fab.received": { en: "Money received", hi: "पैसा आया", kn: "ಬಂದ ಹಣ" },
+  "fab.paid": { en: "Money paid", hi: "पैसा गया", kn: "ಹೋದ ಹಣ" },
+  "fab.amount": { en: "Amount (₹)", hi: "राशि (₹)", kn: "ಮೊತ್ತ (₹)" },
+  "fab.customer": { en: "Customer", hi: "ग्राहक", kn: "ಗ್ರಾಹಕ" },
+  "fab.supplier": { en: "Supplier / what for", hi: "सप्लायर / किसलिए", kn: "ಸರಬರಾಜುದಾರ / ಯಾವುದಕ್ಕೆ" },
+  "fab.date": { en: "Date", hi: "तारीख", kn: "ದಿನಾಂಕ" },
+  "fab.notes": { en: "Notes (optional)", hi: "नोट (वैकल्पिक)", kn: "ಟಿಪ್ಪಣಿ (ಐಚ್ಛಿಕ)" },
+  "fab.egCustomer": { en: "e.g. ABC Traders", hi: "जैसे ABC Traders", kn: "ಉದಾ. ABC Traders" },
+  "fab.egSupplier": { en: "e.g. Surya Yarns", hi: "जैसे Surya Yarns", kn: "ಉದಾ. Surya Yarns" },
+  "fab.continue": { en: "Continue", hi: "आगे बढ़ें", kn: "ಮುಂದುವರಿಸಿ" },
+  "fab.business": { en: "Business", hi: "व्यापार", kn: "ವ್ಯಾಪಾರ" },
+  "fab.personal": { en: "Personal", hi: "निजी", kn: "ವೈಯಕ್ತಿಕ" },
+  "fab.decideLater": { en: "Not sure — decide later", hi: "पता नहीं — बाद में तय करें", kn: "ಖಚಿತವಿಲ್ಲ — ನಂತರ ನಿರ್ಧರಿಸಿ" },
+  "fab.receivedShort": { en: "Received", hi: "आया", kn: "ಬಂದಿದೆ" },
+  "fab.paidShort": { en: "Paid", hi: "गया", kn: "ಹೋಗಿದೆ" },
   "num.toDo": { en: "{n} to do", hi: "{n} काम", kn: "{n} ಕೆಲಸ" },
 
   // Loading / error / empty states

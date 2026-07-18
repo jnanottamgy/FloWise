@@ -85,7 +85,7 @@ export function AddTransactionFab() {
   function readSms() {
     const p = parseQuickEntry(smsText);
     if (!p) {
-      setSmsErr("Couldn't read that — please enter it below.");
+      setSmsErr(t("fab.smsError"));
       return;
     }
     setAmount(String(p.amount));
@@ -169,7 +169,7 @@ export function AddTransactionFab() {
                     </button>
                   )}
                   <h2 className="text-section font-semibold text-ink">
-                    {step === "entry" ? "Add a transaction" : "Is this business or personal?"}
+                    {step === "entry" ? t("fab.title") : t("fab.classifyTitle")}
                   </h2>
                 </div>
                 <button
@@ -189,7 +189,7 @@ export function AddTransactionFab() {
                       onClick={() => setShowSms(true)}
                       className="mb-3 inline-flex items-center gap-1.5 rounded-pill bg-olive/10 px-3 py-1.5 text-caption font-medium text-olive transition hover:bg-olive/20"
                     >
-                      <MessageSquareText size={14} /> Paste a bank / UPI SMS
+                      <MessageSquareText size={14} /> {t("fab.pasteSms")}
                     </button>
                   ) : (
                     <div className="mb-3 space-y-2">
@@ -197,7 +197,7 @@ export function AddTransactionFab() {
                         value={smsText}
                         onChange={(e) => setSmsText(e.target.value)}
                         rows={3}
-                        placeholder="Paste your bank/UPI SMS here — e.g. Rs.5000 credited… from MERIDIAN RETAIL"
+                        placeholder={t("fab.smsPlaceholder")}
                         className="w-full resize-none rounded-2xl border border-border bg-bg p-3 text-caption text-ink outline-none focus:border-olive focus:ring-2 focus:ring-olive/30"
                       />
                       <div className="flex gap-2">
@@ -206,7 +206,7 @@ export function AddTransactionFab() {
                           disabled={!smsText.trim()}
                           className="rounded-pill bg-olive px-4 py-2 text-caption font-semibold text-white transition hover:bg-olive-dark disabled:opacity-50"
                         >
-                          Read SMS
+                          {t("fab.readSms")}
                         </button>
                         <button
                           onClick={() => {
@@ -215,7 +215,7 @@ export function AddTransactionFab() {
                           }}
                           className="rounded-pill border border-border px-4 py-2 text-caption font-medium text-ink"
                         >
-                          Cancel
+                          {t("fab.cancel")}
                         </button>
                       </div>
                       {smsErr && <p className="text-caption text-error">{smsErr}</p>}
@@ -231,7 +231,7 @@ export function AddTransactionFab() {
                         dir === "in" ? "bg-success/15 text-[color:var(--success-ink)]" : "text-muted",
                       )}
                     >
-                      Money received
+                      {t("fab.received")}
                     </button>
                     <button
                       onClick={() => setDir("out")}
@@ -241,12 +241,12 @@ export function AddTransactionFab() {
                         dir === "out" ? "bg-card text-ink shadow-soft" : "text-muted",
                       )}
                     >
-                      Money paid
+                      {t("fab.paid")}
                     </button>
                   </div>
 
                   <div className="mt-4 space-y-3">
-                    <Field label="Amount (₹)">
+                    <Field label={t("fab.amount")}>
                       <input
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
@@ -257,16 +257,16 @@ export function AddTransactionFab() {
                         className="h-12 w-full rounded-2xl border border-border bg-bg px-4 text-section font-semibold text-ink outline-none focus:border-olive focus:ring-2 focus:ring-olive/30"
                       />
                     </Field>
-                    <Field label={dir === "in" ? "Customer" : "Supplier / what for"}>
+                    <Field label={dir === "in" ? t("fab.customer") : t("fab.supplier")}>
                       <input
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        placeholder={dir === "in" ? "e.g. ABC Traders" : "e.g. Surya Yarns"}
+                        placeholder={dir === "in" ? t("fab.egCustomer") : t("fab.egSupplier")}
                         className="h-12 w-full rounded-2xl border border-border bg-bg px-4 text-body text-ink outline-none focus:border-olive focus:ring-2 focus:ring-olive/30"
                       />
                     </Field>
                     <div className="grid grid-cols-2 gap-3">
-                      <Field label="Date">
+                      <Field label={t("fab.date")}>
                         <input
                           type="date"
                           value={date}
@@ -274,7 +274,7 @@ export function AddTransactionFab() {
                           className="h-12 w-full rounded-2xl border border-border bg-bg px-4 text-body text-ink outline-none focus:border-olive focus:ring-2 focus:ring-olive/30"
                         />
                       </Field>
-                      <Field label="Notes (optional)">
+                      <Field label={t("fab.notes")}>
                         <input
                           value={notes}
                           onChange={(e) => setNotes(e.target.value)}
@@ -290,13 +290,13 @@ export function AddTransactionFab() {
                     disabled={!amount.trim()}
                     className="mt-5 w-full rounded-pill bg-olive py-3.5 text-body font-semibold text-white transition hover:bg-olive-dark disabled:opacity-50"
                   >
-                    Continue
+                    {t("fab.continue")}
                   </button>
                 </>
               ) : (
                 <>
                   <p className="text-body text-muted">
-                    {pending?.direction === "in" ? "Received" : "Paid"}{" "}
+                    {pending?.direction === "in" ? t("fab.receivedShort") : t("fab.paidShort")}{" "}
                     <span className="font-semibold text-ink">
                       {formatINR(pending?.amount ?? 0)}
                     </span>
@@ -309,14 +309,14 @@ export function AddTransactionFab() {
                       className="flex flex-col items-center gap-2 rounded-3xl border border-olive/30 bg-olive/[0.06] py-6 text-olive transition hover:bg-olive/[0.12]"
                     >
                       <Briefcase size={26} />
-                      <span className="text-body font-semibold">Business</span>
+                      <span className="text-body font-semibold">{t("fab.business")}</span>
                     </button>
                     <button
                       onClick={() => commit("personal")}
                       className="flex flex-col items-center gap-2 rounded-3xl border border-border bg-black/[0.02] py-6 text-ink transition hover:bg-black/[0.05]"
                     >
                       <User size={26} className="text-muted" />
-                      <span className="text-body font-semibold">Personal</span>
+                      <span className="text-body font-semibold">{t("fab.personal")}</span>
                     </button>
                   </div>
 
@@ -324,7 +324,7 @@ export function AddTransactionFab() {
                     onClick={() => commit("unsure")}
                     className="mt-3 w-full rounded-pill py-2.5 text-caption font-medium text-muted transition hover:text-ink"
                   >
-                    Not sure — decide later
+                    {t("fab.decideLater")}
                   </button>
                 </>
               )}

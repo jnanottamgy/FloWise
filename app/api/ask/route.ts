@@ -9,6 +9,7 @@ import { normalizeBusiness } from "@/lib/resolveBusiness";
 import { formatINR } from "@/lib/format";
 import { categoryLabel } from "@/lib/labels";
 import { deterministicAnswer, type AskContext } from "@/lib/askAnswer";
+import type { Lang } from "@/lib/i18n";
 import type { Business, MoneyMetrics, Transaction } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -99,10 +100,11 @@ export async function POST(req: NextRequest) {
     byCategory: money?.byCategory ?? [],
     recurring: money?.recurring ?? [],
   };
-  const fallback = deterministicAnswer(question, askCtx);
-
-  const lang = typeof body.lang === "string" ? body.lang : "en";
+  const rawLang = typeof body.lang === "string" ? body.lang : "en";
+  const lang: Lang = rawLang === "hi" || rawLang === "kn" ? rawLang : "en";
   const langName = lang === "hi" ? "Hindi" : lang === "kn" ? "Kannada" : "English";
+
+  const fallback = deterministicAnswer(question, askCtx, lang);
 
   const context = buildContext(business, money);
   const prompt =

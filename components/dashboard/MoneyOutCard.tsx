@@ -19,7 +19,7 @@ const FRIENDLY: Record<string, string> = {
 
 export function MoneyOutCard() {
   const { metrics: m } = useOverview();
-  const { t } = useLang();
+  const { t, lang } = useLang();
 
   const bills = (m?.recurring ?? [])
     .filter((r) => r.scope === "business")
@@ -39,9 +39,7 @@ export function MoneyOutCard() {
       </div>
 
       {bills.length === 0 ? (
-        <p className="py-8 text-center text-caption text-muted">
-          No regular bills detected yet.
-        </p>
+        <p className="py-8 text-center text-caption text-muted">{t("out.noBills")}</p>
       ) : (
         <div className="mt-3 space-y-2">
           {bills.map((r) => (
@@ -54,10 +52,12 @@ export function MoneyOutCard() {
               </span>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-body font-medium text-ink">
-                  {FRIENDLY[r.category] ?? r.counterparty}
+                  {lang === "en"
+                    ? FRIENDLY[r.category] ?? r.counterparty
+                    : categoryLabel(r.category, lang)}
                 </p>
                 <p className="flex items-center gap-1 text-caption text-muted">
-                  <Repeat size={12} /> {categoryLabel(r.category)} · {t("out.everyMonth")}
+                  <Repeat size={12} /> {categoryLabel(r.category, lang)} · {t("out.everyMonth")}
                 </p>
               </div>
               <span className="shrink-0 text-body font-semibold text-ink">
