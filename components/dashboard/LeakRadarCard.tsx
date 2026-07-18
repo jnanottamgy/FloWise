@@ -11,7 +11,7 @@ export function LeakRadarCard({ metrics: m }: { metrics: MoneyMetrics }) {
     m.moneyOut > 0 ? Math.round((m.recurringMonthlyTotal / m.moneyOut) * 100) : 0;
 
   return (
-    <Card className="flex flex-col">
+    <Card className="flex flex-col sm:col-span-2">
       <div className="flex items-center justify-between">
         <h3 className="text-section font-semibold text-ink">Leak radar</h3>
         <span className="rounded-pill bg-warning/15 px-2.5 py-1 text-caption font-medium text-warning">

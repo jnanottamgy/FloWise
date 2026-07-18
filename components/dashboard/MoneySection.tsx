@@ -2,14 +2,15 @@
 
 import { Card } from "@/components/ui/card";
 import { RealCashCard } from "./RealCashCard";
+import { MineVsBusinessCard } from "./MineVsBusinessCard";
 import { LeakRadarCard } from "./LeakRadarCard";
 import { TaxDrawerCard } from "./TaxDrawerCard";
 import { TransactionsCard } from "./TransactionsCard";
-import { useTransactions } from "@/lib/dashboardData";
+import { useMoney } from "@/lib/dashboardData";
 
-// The "all your money" band: real cash + leaks + tax drawer + full ledger.
+// The "all your money" band: real cash + mine-vs-business + leaks + tax + ledger.
 export function MoneySection() {
-  const { data, isLoading, isError } = useTransactions();
+  const { data, isLoading, isError } = useMoney();
 
   if (isLoading) {
     return (
@@ -44,6 +45,7 @@ export function MoneySection() {
   return (
     <>
       <RealCashCard metrics={data.metrics} />
+      <MineVsBusinessCard transactions={data.transactions} metrics={data.metrics} />
       <LeakRadarCard metrics={data.metrics} />
       <TaxDrawerCard metrics={data.metrics} />
       <TransactionsCard transactions={data.transactions} />

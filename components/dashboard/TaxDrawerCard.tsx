@@ -11,7 +11,7 @@ export function TaxDrawerCard({ metrics: m }: { metrics: MoneyMetrics }) {
   const max = m.byCategory.reduce((mx, c) => Math.max(mx, c.amount), 1);
 
   return (
-    <Card className="flex flex-col">
+    <Card className="flex flex-col sm:col-span-2">
       <div className="flex items-center justify-between">
         <h3 className="text-section font-semibold text-ink">Tax drawer</h3>
         <FileText size={18} className="text-olive" />

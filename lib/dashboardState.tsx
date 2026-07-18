@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { useBusiness } from "./businessContext";
-import type { EnrichedInvoice } from "./types";
+import type { EnrichedInvoice, TxnScope } from "./types";
 
 export interface SentItem {
   invoice: EnrichedInvoice;
@@ -24,7 +24,12 @@ interface DashboardStateValue {
   sentItems: SentItem[]; // for the active business, newest first
   sentIds: Set<string>;
   markSent: (item: SentItem) => void;
+  // Mine-vs-Business: per-transaction scope corrections (persisted).
+  scopeOverrides: Record<string, TxnScope>;
+  setScope: (txnId: string, scope: TxnScope) => void;
 }
+
+const SCOPE_KEY = "flowise.scopeOverrides";
 
 const Ctx = createContext<DashboardStateValue | null>(null);
 
@@ -36,6 +41,19 @@ export function DashboardStateProvider({ children }: { children: ReactNode }) {
 
   const [selectedInvoiceId, setSelected] = useState<string | null>(null);
   const [sentMap, setSentMap] = useState<Record<string, SentItem[]>>({});
+  const [scopeMap, setScopeMap] = useState<
+    Record<string, Record<string, TxnScope>>
+  >({});
+
+  // Hydrate persisted scope corrections once.
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(SCOPE_KEY);
+      if (raw) setScopeMap(JSON.parse(raw));
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   // A selection from one business is meaningless in another — clear on switch.
   useEffect(() => {
@@ -60,9 +78,36 @@ export function DashboardStateProvider({ children }: { children: ReactNode }) {
 
   const select = useCallback((id: string | null) => setSelected(id), []);
 
+  const scopeOverrides = scopeMap[bid] ?? {};
+  const setScope = useCallback(
+    (txnId: string, scope: TxnScope) => {
+      setScopeMap((prev) => {
+        const next = {
+          ...prev,
+          [bid]: { ...(prev[bid] ?? {}), [txnId]: scope },
+        };
+        try {
+          localStorage.setItem(SCOPE_KEY, JSON.stringify(next));
+        } catch {
+          /* ignore */
+        }
+        return next;
+      });
+    },
+    [bid],
+  );
+
   return (
     <Ctx.Provider
-      value={{ selectedInvoiceId, select, sentItems, sentIds, markSent }}
+      value={{
+        selectedInvoiceId,
+        select,
+        sentItems,
+        sentIds,
+        markSent,
+        scopeOverrides,
+        setScope,
+      }}
     >
       {children}
     </Ctx.Provider>

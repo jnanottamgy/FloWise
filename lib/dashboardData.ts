@@ -1,7 +1,11 @@
 "use client";
 
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useBusiness } from "./businessContext";
+import { useDashboardState } from "./dashboardState";
+import { computeMoneyMetrics } from "./transactions";
+import type { TransactionsResponse } from "./types";
 import {
   fetchInsight,
   fetchInvoices,
@@ -40,7 +44,7 @@ export function useInvoices() {
   });
 }
 
-/** All money transactions + money metrics for the active business. */
+/** Raw money transactions + server metrics for the active business. */
 export function useTransactions() {
   const { activeBusiness } = useBusiness();
   return useQuery({
@@ -48,4 +52,32 @@ export function useTransactions() {
     enabled: Boolean(activeBusiness),
     queryFn: () => fetchTransactions(activeBusiness!),
   });
+}
+
+/**
+ * Transactions with the owner's Mine-vs-Business corrections applied, and money
+ * metrics recomputed client-side (instant — no round-trip). Must be used inside
+ * DashboardStateProvider.
+ */
+export function useMoney(): {
+  data: TransactionsResponse | null;
+  isLoading: boolean;
+  isError: boolean;
+} {
+  const q = useTransactions();
+  const { scopeOverrides } = useDashboardState();
+
+  const data = useMemo<TransactionsResponse | null>(() => {
+    if (!q.data) return null;
+    const transactions = q.data.transactions.map((t) =>
+      scopeOverrides[t.id] ? { ...t, scope: scopeOverrides[t.id] } : t,
+    );
+    return {
+      business: q.data.business,
+      transactions,
+      metrics: computeMoneyMetrics(transactions, q.data.metrics.bankBalance),
+    };
+  }, [q.data, scopeOverrides]);
+
+  return { data, isLoading: q.isLoading, isError: q.isError };
 }
