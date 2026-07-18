@@ -14,6 +14,7 @@ export interface Action {
   actionLabel: string;
   actionType: ActionType;
   invoiceId?: string;
+  pay?: { name: string; amount: number; category: string };
 }
 
 const rank: Record<Urgency, number> = { urgent: 0, warning: 1, info: 2 };
@@ -77,6 +78,7 @@ export function buildActions(
       sub: "regular monthly bill",
       actionLabel: "Mark paid",
       actionType: "pay",
+      pay: { name: bill.counterparty, amount: bill.monthlyAmount, category: bill.category },
     });
   }
 

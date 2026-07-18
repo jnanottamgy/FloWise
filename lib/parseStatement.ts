@@ -47,24 +47,41 @@ function newId(prefix: string): string {
   return `${prefix}${Date.now().toString(36)}${counter}`;
 }
 
-/** Parse a single free-text entry like "paid 2000 to Surya Yarns for stock". */
+/** Parse a single free-text entry OR a bank/UPI SMS.
+ *  e.g. "paid 2000 to Surya Yarns for stock"
+ *       "Rs.5000 credited to A/c XX1234 on 18-Jul from MERIDIAN RETAIL via UPI" */
 export function parseQuickEntry(text: string): Transaction | null {
   const t = text.trim();
   if (!t) return null;
-  const amountMatch = t.match(/(\d[\d,]*(?:\.\d+)?)/);
-  if (!amountMatch) return null;
-  const amount = Math.round(Number(amountMatch[1].replace(/,/g, "")));
+
+  // Amount: prefer the value after Rs / INR / ₹ so we don't grab an a/c number.
+  const rsMatch = t.match(/(?:rs\.?|inr|₹)\s*([\d,]+(?:\.\d{1,2})?)/i);
+  const numMatch = t.match(/(\d[\d,]*(?:\.\d+)?)/);
+  const amountStr = rsMatch ? rsMatch[1] : numMatch ? numMatch[1] : null;
+  if (!amountStr) return null;
+  const amount = Math.round(Number(amountStr.replace(/,/g, "")));
   if (!amount) return null;
 
-  const direction = IN_WORDS.test(t) ? "in" : "out";
-  // Counterparty: text after "to"/"from", else the words around the amount.
+  // Direction: bank-SMS verbs first, then general words.
+  const direction: "in" | "out" = /\b(debited|debit|sent|withdrawn|paid|spent|purchase)\b/i.test(t)
+    ? "out"
+    : /\b(credited|credit|received|deposit|refund)\b/i.test(t) || IN_WORDS.test(t)
+      ? "in"
+      : "out";
+
+  // Counterparty: name after to/from, trimmed at SMS noise.
   let counterparty = "";
-  const toFrom = t.match(/\b(?:to|from|by)\s+([a-z0-9&.\s]{2,40})/i);
-  if (toFrom) counterparty = toFrom[1].replace(/\bfor\b.*$/i, "").trim();
+  const toFrom = t.match(/\b(?:to|from)\s+([A-Za-z0-9&.\s]{2,40})/i);
+  if (toFrom) {
+    counterparty = toFrom[1]
+      .split(/\b(?:on|ref|upi|dated|at|via|a\/c|acct|account|bank|avl)\b/i)[0]
+      .replace(/\bfor\b.*$/i, "")
+      .trim();
+  }
   if (!counterparty) {
     counterparty = t
-      .replace(amountMatch[0], "")
-      .replace(/\b(paid|spent|bought|gave|sent|received|got|sold|collected|rs|inr|₹|to|from|for|the|a)\b/gi, "")
+      .replace(amountStr, "")
+      .replace(/\b(paid|spent|bought|gave|sent|received|got|sold|collected|credited|debited|rs|inr|₹|to|from|for|the|a|via|upi)\b/gi, "")
       .trim();
   }
   counterparty = (counterparty || "Cash entry").replace(/\s+/g, " ").slice(0, 40);

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   AlertTriangle,
@@ -16,6 +17,7 @@ import { useDashboardState } from "@/lib/dashboardState";
 import { useBusiness } from "@/lib/businessContext";
 import { reminderTemplate, waLink } from "@/lib/drafts";
 import { formatINR } from "@/lib/format";
+import { TODAY } from "@/lib/riskEngine";
 import { scrollToSection } from "./Sidebar";
 import { cn } from "@/lib/utils";
 import type { Action, Urgency } from "@/lib/actions";
@@ -28,10 +30,12 @@ const TONE: Record<Urgency, { dot: string; icon: typeof AlertTriangle }> = {
 };
 
 export function ActionListCard() {
-  const { actions, invoices, metrics, isLoading } = useOverview();
-  const { markSent } = useDashboardState();
+  const { actions: allActions, invoices, metrics, isLoading } = useOverview();
+  const { markSent, addTransactions } = useDashboardState();
   const { activeBusiness } = useBusiness();
   const name = activeBusiness?.name ?? "Our team";
+  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+  const actions = allActions.filter((a) => !dismissed.has(a.id));
 
   function chase(inv: EnrichedInvoice) {
     const msg = reminderTemplate("en", name, inv);
@@ -43,10 +47,27 @@ export function ActionListCard() {
     if ((a.actionType === "collect" || a.actionType === "remind") && a.invoiceId) {
       const inv = invoices.find((i) => i.id === a.invoiceId);
       if (inv) chase(inv);
+    } else if (a.actionType === "pay" && a.pay) {
+      // Log the bill payment as an expense and clear it off the list.
+      addTransactions([
+        {
+          id: `P${Date.now().toString(36)}`,
+          date: TODAY,
+          description: `Paid ${a.pay.name}`,
+          counterparty: a.pay.name,
+          amount: a.pay.amount,
+          direction: "out",
+          mode: "cash",
+          scope: "business",
+          category: a.pay.category,
+          source: "manual",
+          recurring: false,
+          tiedToStock: false,
+        },
+      ]);
+      setDismissed((prev) => new Set(prev).add(a.id));
     } else if (a.actionType === "view") {
       scrollToSection("sec-forecast");
-    } else if (a.actionType === "pay") {
-      scrollToSection("sec-out");
     }
   }
 

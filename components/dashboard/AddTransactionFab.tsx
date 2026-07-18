@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, Briefcase, Plus, User, X } from "lucide-react";
+import { ArrowLeft, Briefcase, MessageSquareText, Plus, User, X } from "lucide-react";
 import { useDashboardState } from "@/lib/dashboardState";
+import { parseQuickEntry } from "@/lib/parseStatement";
 import { TODAY } from "@/lib/riskEngine";
 import { formatINR } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -22,6 +23,9 @@ export function AddTransactionFab() {
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(TODAY);
   const [notes, setNotes] = useState("");
+  const [showSms, setShowSms] = useState(false);
+  const [smsText, setSmsText] = useState("");
+  const [smsErr, setSmsErr] = useState<string | null>(null);
 
   function reset() {
     setStep("entry");
@@ -31,6 +35,22 @@ export function AddTransactionFab() {
     setDate(TODAY);
     setNotes("");
     setDir("out");
+    setShowSms(false);
+    setSmsText("");
+    setSmsErr(null);
+  }
+
+  function readSms() {
+    const p = parseQuickEntry(smsText);
+    if (!p) {
+      setSmsErr("Couldn't read that — please enter it below.");
+      return;
+    }
+    setAmount(String(p.amount));
+    setName(p.counterparty);
+    setDir(p.direction);
+    setShowSms(false);
+    setSmsErr(null);
   }
   function close() {
     setOpen(false);
@@ -119,6 +139,46 @@ export function AddTransactionFab() {
 
               {step === "entry" ? (
                 <>
+                  {/* Paste a bank / UPI SMS to auto-fill */}
+                  {!showSms ? (
+                    <button
+                      onClick={() => setShowSms(true)}
+                      className="mb-3 inline-flex items-center gap-1.5 rounded-pill bg-olive/10 px-3 py-1.5 text-caption font-medium text-olive transition hover:bg-olive/20"
+                    >
+                      <MessageSquareText size={14} /> Paste a bank / UPI SMS
+                    </button>
+                  ) : (
+                    <div className="mb-3 space-y-2">
+                      <textarea
+                        value={smsText}
+                        onChange={(e) => setSmsText(e.target.value)}
+                        rows={3}
+                        autoFocus
+                        placeholder="Paste your bank/UPI SMS here — e.g. Rs.5000 credited… from MERIDIAN RETAIL"
+                        className="w-full resize-none rounded-2xl border border-border bg-bg p-3 text-caption text-ink outline-none focus:border-olive focus:ring-2 focus:ring-olive/30"
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={readSms}
+                          disabled={!smsText.trim()}
+                          className="rounded-pill bg-olive px-4 py-2 text-caption font-semibold text-white transition hover:bg-olive-dark disabled:opacity-50"
+                        >
+                          Read SMS
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowSms(false);
+                            setSmsErr(null);
+                          }}
+                          className="rounded-pill border border-border px-4 py-2 text-caption font-medium text-ink"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                      {smsErr && <p className="text-caption text-error">{smsErr}</p>}
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-2 gap-2 rounded-pill bg-black/[0.03] p-1">
                     <button
                       onClick={() => setDir("in")}
