@@ -65,11 +65,12 @@ export function useMoney(): {
   isError: boolean;
 } {
   const q = useTransactions();
-  const { scopeOverrides } = useDashboardState();
+  const { scopeOverrides, addedTxns } = useDashboardState();
 
   const data = useMemo<TransactionsResponse | null>(() => {
     if (!q.data) return null;
-    const transactions = q.data.transactions.map((t) =>
+    const merged = [...addedTxns, ...q.data.transactions];
+    const transactions = merged.map((t) =>
       scopeOverrides[t.id] ? { ...t, scope: scopeOverrides[t.id] } : t,
     );
     return {
@@ -77,7 +78,7 @@ export function useMoney(): {
       transactions,
       metrics: computeMoneyMetrics(transactions, q.data.metrics.bankBalance),
     };
-  }, [q.data, scopeOverrides]);
+  }, [q.data, scopeOverrides, addedTxns]);
 
   return { data, isLoading: q.isLoading, isError: q.isError };
 }

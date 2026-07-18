@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { useBusiness } from "./businessContext";
-import type { EnrichedInvoice, TxnScope } from "./types";
+import type { EnrichedInvoice, Transaction, TxnScope } from "./types";
 
 export interface SentItem {
   invoice: EnrichedInvoice;
@@ -27,9 +27,13 @@ interface DashboardStateValue {
   // Mine-vs-Business: per-transaction scope corrections (persisted).
   scopeOverrides: Record<string, TxnScope>;
   setScope: (txnId: string, scope: TxnScope) => void;
+  // Manually-added / uploaded transactions (persisted), merged into money.
+  addedTxns: Transaction[];
+  addTransactions: (txns: Transaction[]) => void;
 }
 
 const SCOPE_KEY = "flowise.scopeOverrides";
+const ADDED_KEY = "flowise.addedTxns";
 
 const Ctx = createContext<DashboardStateValue | null>(null);
 
@@ -44,12 +48,15 @@ export function DashboardStateProvider({ children }: { children: ReactNode }) {
   const [scopeMap, setScopeMap] = useState<
     Record<string, Record<string, TxnScope>>
   >({});
+  const [addedMap, setAddedMap] = useState<Record<string, Transaction[]>>({});
 
-  // Hydrate persisted scope corrections once.
+  // Hydrate persisted corrections + additions once.
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(SCOPE_KEY);
-      if (raw) setScopeMap(JSON.parse(raw));
+      const s = localStorage.getItem(SCOPE_KEY);
+      if (s) setScopeMap(JSON.parse(s));
+      const a = localStorage.getItem(ADDED_KEY);
+      if (a) setAddedMap(JSON.parse(a));
     } catch {
       /* ignore */
     }
@@ -97,6 +104,23 @@ export function DashboardStateProvider({ children }: { children: ReactNode }) {
     [bid],
   );
 
+  const addedTxns = addedMap[bid] ?? [];
+  const addTransactions = useCallback(
+    (txns: Transaction[]) => {
+      if (!txns.length) return;
+      setAddedMap((prev) => {
+        const next = { ...prev, [bid]: [...txns, ...(prev[bid] ?? [])] };
+        try {
+          localStorage.setItem(ADDED_KEY, JSON.stringify(next));
+        } catch {
+          /* ignore */
+        }
+        return next;
+      });
+    },
+    [bid],
+  );
+
   return (
     <Ctx.Provider
       value={{
@@ -107,6 +131,8 @@ export function DashboardStateProvider({ children }: { children: ReactNode }) {
         markSent,
         scopeOverrides,
         setScope,
+        addedTxns,
+        addTransactions,
       }}
     >
       {children}
