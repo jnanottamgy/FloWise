@@ -1,0 +1,52 @@
+{
+  "businesses": [
+    {
+      "id": "aria-textiles",
+      "name": "Aria Textiles",
+      "industry": "Textile supplier",
+      "email": "accounts@ariatextiles.example",
+      "invoices": [
+        { "id": "INV001", "client": "Meridian Retail", "amount": 45000, "issueDate": "2026-05-02", "dueDate": "2026-05-16", "paidDate": "2026-05-15", "status": "paid" },
+        { "id": "INV002", "client": "Meridian Retail", "amount": 62000, "issueDate": "2026-06-01", "dueDate": "2026-06-15", "paidDate": "2026-06-14", "status": "paid" },
+        { "id": "INV003", "client": "Meridian Retail", "amount": 58000, "issueDate": "2026-07-05", "dueDate": "2026-07-19", "paidDate": null, "status": "unpaid" },
+        { "id": "INV004", "client": "Kavya Fashions", "amount": 30000, "issueDate": "2026-04-20", "dueDate": "2026-05-04", "paidDate": "2026-05-04", "status": "paid" },
+        { "id": "INV005", "client": "Kavya Fashions", "amount": 35000, "issueDate": "2026-06-10", "dueDate": "2026-06-24", "paidDate": "2026-06-23", "status": "paid" },
+        { "id": "INV006", "client": "Sunrise Garments", "amount": 80000, "issueDate": "2026-04-10", "dueDate": "2026-04-24", "paidDate": "2026-05-03", "status": "paid_late" },
+        { "id": "INV007", "client": "Sunrise Garments", "amount": 72000, "issueDate": "2026-05-15", "dueDate": "2026-05-29", "paidDate": "2026-06-05", "status": "paid_late" },
+        { "id": "INV008", "client": "Sunrise Garments", "amount": 68000, "issueDate": "2026-06-20", "dueDate": "2026-07-04", "paidDate": null, "status": "unpaid" },
+        { "id": "INV009", "client": "Kavya Fashions", "amount": 40000, "issueDate": "2026-07-10", "dueDate": "2026-07-24", "paidDate": null, "status": "unpaid" },
+        { "id": "INV010", "client": "Meridian Retail", "amount": 51000, "issueDate": "2026-07-01", "dueDate": "2026-07-15", "paidDate": null, "status": "unpaid" }
+      ]
+    },
+    {
+      "id": "brew-bloom",
+      "name": "Brew & Bloom Café",
+      "industry": "Café & catering",
+      "email": "accounts@brewbloom.example",
+      "invoices": [
+        { "id": "BB01", "client": "Orion Offices", "amount": 12000, "issueDate": "2026-05-01", "dueDate": "2026-05-15", "paidDate": "2026-05-14", "status": "paid" },
+        { "id": "BB02", "client": "Orion Offices", "amount": 15000, "issueDate": "2026-06-01", "dueDate": "2026-06-15", "paidDate": "2026-06-13", "status": "paid" },
+        { "id": "BB03", "client": "Orion Offices", "amount": 18000, "issueDate": "2026-07-06", "dueDate": "2026-07-20", "paidDate": null, "status": "unpaid" },
+        { "id": "BB04", "client": "Lila Events", "amount": 22000, "issueDate": "2026-04-15", "dueDate": "2026-04-29", "paidDate": "2026-05-06", "status": "paid_late" },
+        { "id": "BB05", "client": "Lila Events", "amount": 26000, "issueDate": "2026-06-10", "dueDate": "2026-06-24", "paidDate": null, "status": "unpaid" },
+        { "id": "BB06", "client": "GreenLeaf Co-work", "amount": 9000, "issueDate": "2026-07-08", "dueDate": "2026-07-22", "paidDate": null, "status": "unpaid" },
+        { "id": "BB07", "client": "GreenLeaf Co-work", "amount": 11000, "issueDate": "2026-05-20", "dueDate": "2026-06-03", "paidDate": "2026-06-02", "status": "paid" }
+      ]
+    },
+    {
+      "id": "northline-studio",
+      "name": "Northline Studio",
+      "industry": "Design agency",
+      "email": "hello@northline.example",
+      "invoices": [
+        { "id": "NS01", "client": "Halcyon Brands", "amount": 120000, "issueDate": "2026-04-05", "dueDate": "2026-05-05", "paidDate": "2026-05-04", "status": "paid" },
+        { "id": "NS02", "client": "Halcyon Brands", "amount": 95000, "issueDate": "2026-06-01", "dueDate": "2026-07-01", "paidDate": null, "status": "unpaid" },
+        { "id": "NS03", "client": "Meadow FMCG", "amount": 60000, "issueDate": "2026-03-20", "dueDate": "2026-04-20", "paidDate": "2026-05-02", "status": "paid_late" },
+        { "id": "NS04", "client": "Meadow FMCG", "amount": 75000, "issueDate": "2026-06-15", "dueDate": "2026-07-15", "paidDate": null, "status": "unpaid" },
+        { "id": "NS05", "client": "Vertex Realty", "amount": 45000, "issueDate": "2026-07-10", "dueDate": "2026-07-19", "paidDate": null, "status": "unpaid" },
+        { "id": "NS06", "client": "Vertex Realty", "amount": 50000, "issueDate": "2026-07-12", "dueDate": "2026-07-26", "paidDate": null, "status": "unpaid" },
+        { "id": "NS07", "client": "Halcyon Brands", "amount": 80000, "issueDate": "2026-05-15", "dueDate": "2026-06-14", "paidDate": "2026-06-14", "status": "paid" }
+      ]
+    }
+  ]
+}
