@@ -55,7 +55,7 @@ export function AddTransactionFab() {
         whileTap={{ scale: 0.95 }}
         onClick={() => setOpen(true)}
         aria-label="Add transaction"
-        className="fixed bottom-6 right-6 z-40 inline-flex items-center gap-2 rounded-pill bg-olive px-5 py-4 text-body font-semibold text-white shadow-card transition hover:bg-olive-dark"
+        className="fixed bottom-24 right-5 z-40 inline-flex items-center gap-2 rounded-pill bg-olive px-5 py-4 text-body font-semibold text-white shadow-card transition hover:bg-olive-dark md:bottom-6 md:right-6"
       >
         <Plus size={20} /> <span className="hidden sm:inline">Add money</span>
       </motion.button>

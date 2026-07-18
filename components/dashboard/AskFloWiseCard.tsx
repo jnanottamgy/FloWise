@@ -9,10 +9,11 @@ import { useBusiness } from "@/lib/businessContext";
 import { postAsk } from "@/lib/api";
 
 const SUGGESTIONS = [
-  "Who owes me the most?",
-  "What's my biggest expense?",
-  "How much did I spend on labour?",
-  "Am I stretched thin this month?",
+  "What should I do today?",
+  "Who owes me money?",
+  "Can I buy inventory this week?",
+  "Will I have enough for salaries?",
+  "Why is my cash reducing?",
 ];
 
 export function AskFloWiseCard() {
