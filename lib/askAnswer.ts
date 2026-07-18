@@ -20,12 +20,14 @@ export interface AskContext {
 export function deterministicAnswer(question: string, c: AskContext): string {
   const q = question.toLowerCase();
   const rs = (n: number) => formatINR(n);
-  const safeToSpend = Math.max(0, c.realFreeCash - c.committedRecurring);
+  // realFreeCash already nets out money tied in stock AND this month's bills, so
+  // it IS the safe-to-spend figure — don't subtract the bills a second time.
+  const safeToSpend = c.realFreeCash;
   const cat = (k: string) => categoryLabel(k);
 
   // Can I buy inventory / afford to spend
   if (/(inventory|stock|buy|purchase|afford|spend|invest|order|restock)/.test(q)) {
-    return `You have ${rs(c.realFreeCash)} free after stock and bills. Keeping enough aside for your ${rs(c.committedRecurring)} of monthly bills, you can comfortably spend up to about ${rs(safeToSpend)} on stock this week.`;
+    return `After setting aside ${rs(c.committedRecurring)} for this month's bills and the money already tied up in stock, you have about ${rs(safeToSpend)} free — that's what you can comfortably put into new stock this week.`;
   }
 
   // Enough for salaries / staff

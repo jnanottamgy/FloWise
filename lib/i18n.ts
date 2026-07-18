@@ -157,6 +157,13 @@ export const STRINGS: Record<string, Entry> = {
   },
   "ask.button": { en: "Ask", hi: "पूछें", kn: "ಕೇಳಿ" },
   "ask.thinking": { en: "FloWise is thinking…", hi: "फ्लोवाइज़ सोच रहा है…", kn: "ಫ್ಲೋವೈಸ್ ಯೋಚಿಸುತ್ತಿದೆ…" },
+  "ask.inputLabel": { en: "Ask a question about your money", hi: "अपने पैसे के बारे में सवाल पूछें", kn: "ನಿಮ್ಮ ಹಣದ ಬಗ್ಗೆ ಪ್ರಶ್ನೆ ಕೇಳಿ" },
+  "ask.error": {
+    en: "Couldn't get an answer just now. Please try again.",
+    hi: "अभी जवाब नहीं मिल पाया। कृपया फिर से कोशिश करें।",
+    kn: "ಈಗ ಉತ್ತರ ಸಿಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+  },
+  "ask.retry": { en: "Try again", hi: "फिर कोशिश करें", kn: "ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ" },
   "ask.q1": { en: "What should I do today?", hi: "आज मुझे क्या करना चाहिए?", kn: "ಇಂದು ನಾನು ಏನು ಮಾಡಬೇಕು?" },
   "ask.q2": { en: "Who owes me money?", hi: "मुझे किससे पैसा लेना है?", kn: "ನನಗೆ ಯಾರು ಹಣ ಕೊಡಬೇಕು?" },
   "ask.q3": { en: "Can I buy inventory this week?", hi: "क्या मैं इस हफ्ते माल खरीद सकता हूँ?", kn: "ಈ ವಾರ ನಾನು ಸ್ಟಾಕ್ ಖರೀದಿಸಬಹುದೇ?" },

@@ -84,8 +84,16 @@ export function computeMoneyMetrics(
   );
   const days = Math.max(7, daysBetween(earliest, TODAY));
   const weeks = days / 7;
-  const avgWeeklyOutflow = Math.round(moneyOut / weeks);
-  const avgWeeklyInflow = Math.round(moneyIn / weeks);
+  // Burn rate drives runway AND the 90-day forecast, so scope it to ongoing
+  // BUSINESS operating spend. Excluding personal/unsure keeps a family expense
+  // from shortening the business runway; excluding one-off stock purchases (they
+  // already sit in lockedInStock) keeps a single bulk buy from projecting as
+  // forever-recurring burn. Inflow is likewise business-scoped for consistency.
+  const businessOperatingOut = outs.filter(
+    (t) => t.scope === "business" && !t.tiedToStock,
+  );
+  const avgWeeklyOutflow = Math.round(sum(businessOperatingOut) / weeks);
+  const avgWeeklyInflow = Math.round(businessIn / weeks);
   const runwayWeeks =
     avgWeeklyOutflow > 0
       ? Math.round((realFreeCash / avgWeeklyOutflow) * 10) / 10

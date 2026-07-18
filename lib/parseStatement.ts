@@ -47,6 +47,69 @@ function newId(prefix: string): string {
   return `${prefix}${Date.now().toString(36)}${counter}`;
 }
 
+function toNum(s: string): number {
+  return Math.round(Number(s.replace(/,/g, "")) || 0);
+}
+
+/** Pull the TRANSACTION amount out of a free-text entry or bank/UPI SMS without
+ *  grabbing an account number or the "available balance". We first blank out the
+ *  a/c number and any balance figure, then look for the amount attached to a
+ *  currency symbol or a debit/credit verb. */
+function extractAmount(t: string): number | null {
+  const cleaned = t
+    // account numbers: "A/c XX1234", "a/c no 001234", card "XX3456"
+    .replace(/\ba\/?c\.?\s*(?:no\.?|number)?\s*[x*\d]{3,}/gi, " ")
+    .replace(/\b(?:card|ac|acct)\s*[x*]+\d+/gi, " ")
+    // available / closing balance figures
+    .replace(
+      /\b(?:avl\.?|available|closing|current|bal\.?|balance)\b[^\d]{0,14}(?:rs\.?|inr|₹)?\s*[\d,]+(?:\.\d{1,2})?/gi,
+      " ",
+    );
+
+  // 1) Amount attached to a currency marker (most reliable).
+  const rs = cleaned.match(/(?:rs\.?|inr|₹)\s*([\d,]+(?:\.\d{1,2})?)/i);
+  if (rs) return toNum(rs[1]);
+  // 2) Amount right after a debit/credit verb: "debited by 500", "paid 2000".
+  const verb = cleaned.match(
+    /\b(?:debited|credited|debit|credit|paid|sent|received|spent|withdrawn|deposited|transferred)\b\s*(?:by|of|with|for|to)?\s*(?:rs\.?|inr|₹)?\s*([\d,]+(?:\.\d{1,2})?)/i,
+  );
+  if (verb) return toNum(verb[1]);
+  // 3) A number just before a verb: "2000 paid", "500 debited".
+  const pre = cleaned.match(
+    /([\d,]+(?:\.\d{1,2})?)\s*(?:rs\.?|inr|₹)?\s*(?:debited|credited|paid|received|sent|spent)\b/i,
+  );
+  if (pre) return toNum(pre[1]);
+  // 4) Fallback: the first plausible number left in the cleaned text.
+  const any = cleaned.match(/([\d,]+(?:\.\d{1,2})?)/);
+  return any ? toNum(any[1]) : null;
+}
+
+/** Split one CSV line respecting double-quoted fields (so an embedded comma in a
+ *  narration or a grouped amount like "1,20,000" doesn't shift every column). */
+function splitCSVLine(line: string): string[] {
+  const out: string[] = [];
+  let cur = "";
+  let inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (inQ) {
+      if (ch === '"') {
+        if (line[i + 1] === '"') {
+          cur += '"';
+          i++;
+        } else inQ = false;
+      } else cur += ch;
+    } else if (ch === '"') {
+      inQ = true;
+    } else if (ch === ",") {
+      out.push(cur);
+      cur = "";
+    } else cur += ch;
+  }
+  out.push(cur);
+  return out;
+}
+
 /** Parse a single free-text entry OR a bank/UPI SMS.
  *  e.g. "paid 2000 to Surya Yarns for stock"
  *       "Rs.5000 credited to A/c XX1234 on 18-Jul from MERIDIAN RETAIL via UPI" */
@@ -54,12 +117,9 @@ export function parseQuickEntry(text: string): Transaction | null {
   const t = text.trim();
   if (!t) return null;
 
-  // Amount: prefer the value after Rs / INR / ₹ so we don't grab an a/c number.
-  const rsMatch = t.match(/(?:rs\.?|inr|₹)\s*([\d,]+(?:\.\d{1,2})?)/i);
-  const numMatch = t.match(/(\d[\d,]*(?:\.\d+)?)/);
-  const amountStr = rsMatch ? rsMatch[1] : numMatch ? numMatch[1] : null;
-  if (!amountStr) return null;
-  const amount = Math.round(Number(amountStr.replace(/,/g, "")));
+  // Amount: anchor to the currency marker or the debit/credit verb, skipping
+  // account numbers and the available-balance figure.
+  const amount = extractAmount(t);
   if (!amount) return null;
 
   // Direction: bank-SMS verbs first, then general words.
@@ -80,7 +140,7 @@ export function parseQuickEntry(text: string): Transaction | null {
   }
   if (!counterparty) {
     counterparty = t
-      .replace(amountStr, "")
+      .replace(/(?:rs\.?|inr|₹)?\s*[\d,]+(?:\.\d+)?/gi, " ")
       .replace(/\b(paid|spent|bought|gave|sent|received|got|sold|collected|credited|debited|rs|inr|₹|to|from|for|the|a|via|upi)\b/gi, "")
       .trim();
   }
@@ -137,11 +197,15 @@ export interface StatementResult {
 
 /** Parse a bank/UPI statement CSV (Date, Narration, Debit, Credit, [Balance]). */
 export function parseStatementCSV(text: string): StatementResult {
-  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const lines = text
+    .replace(/^﻿/, "") // strip BOM some banks prepend
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
   if (lines.length < 2) {
     return { transactions: [], errors: ["Need a header row and at least one transaction."] };
   }
-  const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
+  const headers = splitCSVLine(lines[0]).map((h) => h.trim().toLowerCase());
   const dateCol = findCol(headers, [/date/]);
   const narrCol = findCol(headers, [/narration|description|particular|details|remarks/]);
   const debitCol = findCol(headers, [/debit|withdraw/]);
@@ -160,7 +224,7 @@ export function parseStatementCSV(text: string): StatementResult {
   const num = (s: string) => Number((s || "").replace(/[₹,\s]/g, "")) || 0;
 
   lines.slice(1).forEach((line, i) => {
-    const cells = line.split(",");
+    const cells = splitCSVLine(line);
     const narration = (cells[narrCol] ?? "").trim();
     if (!narration) return;
     const debit = debitCol >= 0 ? num(cells[debitCol]) : 0;

@@ -6,7 +6,10 @@ import { followupTemplate, summaryTemplate } from "./drafts";
 // Model is configurable via env (GEMMA_MODEL) but defaults to the specified one.
 const MODEL = process.env.GEMMA_MODEL || "gemma-4-26b-a4b-it";
 const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
-const TIMEOUT_MS = 45_000;
+// The model reasons for a while; 25s is long enough to reach a salvageable draft
+// but short enough that we don't leave the owner waiting a full minute for what is
+// often just the instant deterministic fallback.
+const TIMEOUT_MS = 25_000;
 // Enough for the model to reason far enough to produce a complete draft we can
 // salvage. Short answers (summaries) reach a draft early; longer answers
 // (emails) need more room, so callers can raise it.
@@ -24,10 +27,28 @@ const OUTPUT_RULE =
   "Put nothing except the final answer between those markers.";
 
 const REASONING_MARKERS =
-  /(\*\s|Draft\s?\d|Refin|Constraint Check|Summary Idea|Self-correction|Let's try|Re-evaluat|Final (Version|Text|Polish))/i;
+  /(\*\s|Draft\s?\d|Refin|Constraint Check|Summary Idea|Self-correction|Let's try|Re-evaluat|Final (Version|Text|Polish)|Option [AB]\b|Revised Draft)/i;
+
+// First-person / meta cues that reveal the model is still narrating its own
+// process rather than answering the owner. Used to reject short "direct answer"
+// candidates so chain-of-thought can never reach the UI.
+const META_CUES =
+  /\b(let me|i'?ll|i will|i think|i need to|we need to|the owner|the user|the data|the prompt|the instruction|let'?s|okay,|actually,|wait,|hmm|strictly speaking|self-correct)\b/i;
 
 function stripTags(s: string): string {
   return s.replace(/^<\/?out>/i, "").replace(/<\/?out>$/i, "").trim();
+}
+
+/** True if the text still looks like the model's reasoning rather than an answer.
+ *  Deliberately strict — a false positive just means we show the (correct)
+ *  deterministic fallback instead of leaking chain-of-thought. */
+function looksLikeReasoning(s: string): boolean {
+  if (REASONING_MARKERS.test(s)) return true;
+  if (META_CUES.test(s)) return true;
+  if (/<\/?out>/i.test(s)) return true; // stray tag = mid-reasoning echo
+  const bullets = (s.match(/(^|\n)\s*[*\-•]\s/g) ?? []).length;
+  if (bullets >= 2) return true;
+  return false;
 }
 
 function clean(s: string): string {
@@ -75,11 +96,20 @@ function extractAnswer(raw: string): string | null {
     .filter((s) => s.length >= 25);
   if (closed.length) return stripTags(closed[closed.length - 1]);
 
-  // 2) Opened the final <out> but got truncated before closing — salvage the tail.
+  // 2) Opened the final <out> but got truncated before closing — salvage the tail,
+  //    but ONLY if it reads like a finished answer. The model echoes the <out>
+  //    marker mid-reasoning, so an unguarded tail is the #1 chain-of-thought leak.
   const open = raw.lastIndexOf("<out>");
   if (open !== -1) {
     const tail = stripTags(raw.slice(open + 5));
-    if (tail.length >= 25) return tail;
+    if (
+      tail.length >= 25 &&
+      tail.length < 900 &&
+      !looksLikeReasoning(tail) &&
+      /[.!?]["')\]]?\s*$/.test(tail) // ends on a complete sentence
+    ) {
+      return tail;
+    }
   }
 
   // 3) No usable <out>: salvage the model's own finished draft from the reasoning.
@@ -90,9 +120,12 @@ function extractAnswer(raw: string): string | null {
   const draft = salvageDraft(raw);
   if (draft) return draft;
 
-  // 4) A short, reasoning-free direct answer.
+  // 4) A short, direct answer with no reasoning tells. Kept tight (<= ~3
+  //    sentences) so a verbose thought stream can never qualify.
   const t = raw.trim();
-  if (t && t.length < 900 && !REASONING_MARKERS.test(t)) return t;
+  if (t && t.length < 400 && !looksLikeReasoning(t) && /[.!?]["')\]]?\s*$/.test(t)) {
+    return t;
+  }
   return null;
 }
 
@@ -115,7 +148,9 @@ export async function callGemma(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt + OUTPUT_RULE }] }],
-        generationConfig: { temperature: 0.6, maxOutputTokens: maxTokens },
+        // Low temperature: these are factual money answers, and less creative
+        // rambling means a cleaner final answer and less reasoning to leak.
+        generationConfig: { temperature: 0.2, maxOutputTokens: maxTokens },
       }),
       cache: "no-store",
       signal: AbortSignal.timeout(TIMEOUT_MS),
@@ -127,7 +162,14 @@ export async function callGemma(
     const data = await res.json();
     const text: unknown = data?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (typeof text !== "string" || !text.trim()) return fallback;
-    return extractAnswer(text) ?? fallback;
+    const answer = extractAnswer(text);
+    // Final safety net: if extraction still produced something that smells like
+    // reasoning (stray markers/tags) or is implausibly long for an answer, show
+    // the deterministic fallback rather than risk leaking chain-of-thought.
+    if (!answer || REASONING_MARKERS.test(answer) || /<\/?out>/i.test(answer) || answer.length > 1500) {
+      return fallback;
+    }
+    return answer;
   } catch (err) {
     console.error("[gemma] error", (err as Error)?.name ?? err);
     return fallback;

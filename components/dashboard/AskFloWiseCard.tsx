@@ -50,6 +50,7 @@ export function AskFloWiseCard() {
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           placeholder={t("ask.q2")}
+          aria-label={t("ask.inputLabel")}
           className="h-12 flex-1 rounded-pill border border-border bg-bg px-5 text-body text-ink outline-none transition focus:border-olive focus:ring-2 focus:ring-olive/30"
         />
         <button
@@ -78,17 +79,30 @@ export function AskFloWiseCard() {
 
       {/* Answer */}
       <AnimatePresence>
-        {(ask.isPending || ask.data) && (
+        {(ask.isPending || ask.isError || ask.data) && (
           <motion.div
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
+            role="status"
+            aria-live="polite"
+            aria-busy={ask.isPending}
             className="mt-4 rounded-2xl bg-olive/[0.06] p-4"
           >
             {ask.isPending ? (
               <div className="flex items-center gap-2 text-caption text-muted">
                 <Loader2 size={14} className="animate-spin text-olive" />
                 {t("ask.thinking")}
+              </div>
+            ) : ask.isError ? (
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="text-body text-ink/85">{t("ask.error")}</span>
+                <button
+                  onClick={() => submit(question)}
+                  className="rounded-pill border border-olive/40 px-3 py-1.5 text-caption font-medium text-olive transition hover:bg-olive/10"
+                >
+                  {t("ask.retry")}
+                </button>
               </div>
             ) : (
               <p className="text-body leading-relaxed text-ink/85">{ask.data?.answer}</p>
