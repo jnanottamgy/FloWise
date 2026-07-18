@@ -54,35 +54,53 @@ function download(filename: string, text: string, mime: string) {
   URL.revokeObjectURL(url);
 }
 
-/** Ambient patterned backdrop — soft olive/sage glows + a faint dot grid. */
+/** Ambient patterned backdrop — soft olive/sage colour mesh + a dot grid + glow orbs. */
 function BackgroundFX() {
   return (
-    <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-      {/* faint dot grid, faded toward the edges */}
+    <div
+      aria-hidden
+      className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-bg"
+    >
+      {/* soft colour mesh */}
       <div
-        className="absolute inset-0 opacity-[0.5]"
+        className="absolute inset-0"
+        style={{
+          background: `
+            radial-gradient(55% 45% at 12% -5%, rgba(95,120,106,0.22), transparent 60%),
+            radial-gradient(50% 40% at 100% 8%, rgba(167,182,168,0.28), transparent 60%),
+            radial-gradient(65% 55% at 50% 110%, rgba(95,120,106,0.14), transparent 70%)
+          `,
+        }}
+      />
+      {/* dot grid */}
+      <div
+        className="absolute inset-0"
         style={{
           backgroundImage:
-            "radial-gradient(circle, rgba(17,17,17,0.05) 1px, transparent 1px)",
-          backgroundSize: "24px 24px",
+            "radial-gradient(circle, rgba(17,17,17,0.09) 1.2px, transparent 1.2px)",
+          backgroundSize: "22px 22px",
           maskImage:
-            "radial-gradient(ellipse 80% 60% at 50% 30%, #000 40%, transparent 100%)",
+            "radial-gradient(ellipse 110% 85% at 50% 25%, #000 55%, transparent 100%)",
           WebkitMaskImage:
-            "radial-gradient(ellipse 80% 60% at 50% 30%, #000 40%, transparent 100%)",
+            "radial-gradient(ellipse 110% 85% at 50% 25%, #000 55%, transparent 100%)",
         }}
       />
       {/* floating glow orbs */}
       <motion.div
-        className="absolute -left-24 -top-24 h-[420px] w-[420px] rounded-full bg-olive/20 blur-[90px]"
-        animate={{ y: [0, 24, 0], x: [0, 14, 0] }}
+        className="absolute -left-24 -top-24 h-[440px] w-[440px] rounded-full bg-olive/25 blur-[90px]"
+        animate={{ y: [0, 26, 0], x: [0, 16, 0] }}
         transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
       />
       <motion.div
-        className="absolute -right-28 top-16 h-[380px] w-[380px] rounded-full bg-sage/25 blur-[90px]"
-        animate={{ y: [0, -20, 0], x: [0, -12, 0] }}
+        className="absolute -right-28 top-8 h-[400px] w-[400px] rounded-full bg-sage/30 blur-[90px]"
+        animate={{ y: [0, -22, 0], x: [0, -14, 0] }}
         transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
       />
-      <div className="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-white/50 to-transparent" />
+      <motion.div
+        className="absolute -bottom-24 left-1/3 h-[360px] w-[360px] rounded-full bg-olive/15 blur-[100px]"
+        animate={{ y: [0, -16, 0] }}
+        transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+      />
     </div>
   );
 }
