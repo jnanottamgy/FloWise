@@ -2,12 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Send, X } from "lucide-react";
+import { MessageCircle, X } from "lucide-react";
 import { RiskBadge } from "./RiskBadge";
 import { useInvoices } from "@/lib/dashboardData";
 import { useDashboardState } from "@/lib/dashboardState";
 import { useBusiness, type ActiveBusiness } from "@/lib/businessContext";
-import { followupTemplate } from "@/lib/drafts";
+import { followupTemplate, waLink } from "@/lib/drafts";
 import { formatDate, formatINR } from "@/lib/format";
 import type { EnrichedInvoice } from "@/lib/types";
 
@@ -131,17 +131,21 @@ function PanelInner({
 
         <div className="flex items-center gap-3 border-t border-border p-6">
           <button
-            onClick={() => onSend(message)}
+            onClick={() => {
+              window.open(waLink(message), "_blank", "noopener,noreferrer");
+              onSend(message);
+            }}
             disabled={!message.trim()}
-            className="inline-flex flex-1 items-center justify-center gap-2 rounded-pill bg-olive py-3 text-body font-semibold text-white transition hover:bg-olive-dark disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex flex-1 items-center justify-center gap-2 rounded-pill bg-success py-3 text-body font-semibold text-white transition hover:bg-success/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <Send size={16} /> Send
+            <MessageCircle size={16} /> Send on WhatsApp
           </button>
           <button
-            onClick={onClose}
-            className="rounded-pill border border-border px-5 py-3 text-body font-medium text-ink transition hover:bg-black/[0.03]"
+            onClick={() => onSend(message)}
+            disabled={!message.trim()}
+            className="rounded-pill border border-border px-5 py-3 text-body font-medium text-ink transition hover:bg-black/[0.03] disabled:opacity-50"
           >
-            Cancel
+            Mark done
           </button>
         </div>
       </motion.aside>

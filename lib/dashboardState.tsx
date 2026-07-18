@@ -75,10 +75,11 @@ export function DashboardStateProvider({ children }: { children: ReactNode }) {
 
   const markSent = useCallback(
     (item: SentItem) => {
-      setSentMap((prev) => ({
-        ...prev,
-        [bid]: [item, ...(prev[bid] ?? [])],
-      }));
+      setSentMap((prev) => {
+        const existing = prev[bid] ?? [];
+        if (existing.some((s) => s.invoice.id === item.invoice.id)) return prev;
+        return { ...prev, [bid]: [item, ...existing] };
+      });
     },
     [bid],
   );

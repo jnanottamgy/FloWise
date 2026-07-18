@@ -5,8 +5,11 @@ import { CheckCircle2, MessageCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useOverview } from "@/lib/dashboardData";
 import { useDashboardState } from "@/lib/dashboardState";
+import { useBusiness } from "@/lib/businessContext";
+import { reminderTemplate, waLink } from "@/lib/drafts";
 import { formatINR } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import type { EnrichedInvoice } from "@/lib/types";
 
 function initials(name: string) {
   return name.split(" ").slice(0, 2).map((w) => w[0]).join("").toUpperCase();
@@ -14,7 +17,15 @@ function initials(name: string) {
 
 export function MoneyInCard() {
   const { unpaid } = useOverview();
-  const { select, sentIds } = useDashboardState();
+  const { markSent, sentIds } = useDashboardState();
+  const { activeBusiness } = useBusiness();
+  const bizName = activeBusiness?.name ?? "Our team";
+
+  function remind(inv: EnrichedInvoice) {
+    const msg = reminderTemplate("en", bizName, inv);
+    window.open(waLink(msg), "_blank", "noopener,noreferrer");
+    markSent({ invoice: inv, message: msg, sentAt: new Date().toISOString() });
+  }
 
   const rows = unpaid
     .filter((i) => !sentIds.has(i.id))
@@ -67,10 +78,10 @@ export function MoneyInCard() {
                 </p>
               </div>
               <button
-                onClick={() => select(inv.id)}
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-pill bg-olive px-4 py-2 text-caption font-semibold text-white transition hover:bg-olive-dark"
+                onClick={() => remind(inv)}
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-pill bg-success px-4 py-2 text-caption font-semibold text-white transition hover:bg-success/90"
               >
-                <MessageCircle size={14} /> Remind
+                <MessageCircle size={14} /> WhatsApp
               </button>
             </motion.div>
           ))}

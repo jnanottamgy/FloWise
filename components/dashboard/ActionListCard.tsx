@@ -1,13 +1,25 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { AlertTriangle, ArrowRight, CheckCircle2, Clock, Wallet } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowRight,
+  CheckCircle2,
+  Clock,
+  MessageCircle,
+  Send,
+  Wallet,
+} from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useOverview } from "@/lib/dashboardData";
 import { useDashboardState } from "@/lib/dashboardState";
+import { useBusiness } from "@/lib/businessContext";
+import { reminderTemplate, waLink } from "@/lib/drafts";
+import { formatINR } from "@/lib/format";
 import { scrollToSection } from "./Sidebar";
 import { cn } from "@/lib/utils";
 import type { Action, Urgency } from "@/lib/actions";
+import type { EnrichedInvoice } from "@/lib/types";
 
 const TONE: Record<Urgency, { dot: string; icon: typeof AlertTriangle }> = {
   urgent: { dot: "bg-error", icon: AlertTriangle },
@@ -16,12 +28,21 @@ const TONE: Record<Urgency, { dot: string; icon: typeof AlertTriangle }> = {
 };
 
 export function ActionListCard() {
-  const { actions, isLoading } = useOverview();
-  const { select } = useDashboardState();
+  const { actions, invoices, metrics, isLoading } = useOverview();
+  const { markSent } = useDashboardState();
+  const { activeBusiness } = useBusiness();
+  const name = activeBusiness?.name ?? "Our team";
+
+  function chase(inv: EnrichedInvoice) {
+    const msg = reminderTemplate("en", name, inv);
+    window.open(waLink(msg), "_blank", "noopener,noreferrer");
+    markSent({ invoice: inv, message: msg, sentAt: new Date().toISOString() });
+  }
 
   function run(a: Action) {
     if ((a.actionType === "collect" || a.actionType === "remind") && a.invoiceId) {
-      select(a.invoiceId);
+      const inv = invoices.find((i) => i.id === a.invoiceId);
+      if (inv) chase(inv);
     } else if (a.actionType === "view") {
       scrollToSection("sec-forecast");
     } else if (a.actionType === "pay") {
@@ -29,14 +50,25 @@ export function ActionListCard() {
     }
   }
 
+  function briefToWhatsApp() {
+    const lines = [`Good morning! Today for ${name}:`];
+    actions.slice(0, 4).forEach((a, i) => lines.push(`${i + 1}. ${a.title} (${a.sub})`));
+    if (metrics) lines.push(`Cash free to spend: ${formatINR(metrics.realFreeCash)}.`);
+    lines.push("— via FloWise");
+    window.open(waLink(lines.join("\n")), "_blank", "noopener,noreferrer");
+  }
+
   return (
     <Card id="sec-actions" className="scroll-mt-6 flex flex-col sm:col-span-2">
-      <div className="mb-1 flex items-center justify-between">
+      <div className="mb-1 flex items-center justify-between gap-2">
         <h3 className="text-section font-semibold text-ink">Do this today</h3>
         {actions.length > 0 && (
-          <span className="rounded-pill bg-olive/10 px-2.5 py-1 text-caption font-medium text-olive">
-            {actions.length} to do
-          </span>
+          <button
+            onClick={briefToWhatsApp}
+            className="inline-flex items-center gap-1.5 rounded-pill bg-success/10 px-3 py-1.5 text-caption font-medium text-success transition hover:bg-success/20"
+          >
+            <Send size={13} /> Send to WhatsApp
+          </button>
         )}
       </div>
       <p className="text-caption text-muted">Your top priorities, in order</p>
@@ -60,6 +92,7 @@ export function ActionListCard() {
       <div className="mt-3 space-y-2.5">
         {actions.map((a, i) => {
           const Icon = TONE[a.urgency].icon;
+          const isChase = a.actionType === "collect" || a.actionType === "remind";
           return (
             <motion.div
               key={a.id}
@@ -77,9 +110,14 @@ export function ActionListCard() {
               </div>
               <button
                 onClick={() => run(a)}
-                className="inline-flex shrink-0 items-center gap-1 rounded-pill bg-olive px-4 py-2 text-caption font-semibold text-white transition hover:bg-olive-dark"
+                className={cn(
+                  "inline-flex shrink-0 items-center gap-1 rounded-pill px-4 py-2 text-caption font-semibold text-white transition",
+                  isChase ? "bg-success hover:bg-success/90" : "bg-olive hover:bg-olive-dark",
+                )}
               >
-                {a.actionLabel} <ArrowRight size={13} />
+                {isChase ? <MessageCircle size={13} /> : null}
+                {a.actionLabel}
+                {!isChase && <ArrowRight size={13} />}
               </button>
             </motion.div>
           );

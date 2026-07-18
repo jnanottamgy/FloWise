@@ -11,6 +11,11 @@ export function summaryTemplate(name: string, m: Metrics): string {
   );
 }
 
+/** Free WhatsApp click-to-chat link with the message pre-filled. */
+export function waLink(text: string): string {
+  return `https://wa.me/?text=${encodeURIComponent(text)}`;
+}
+
 export type ReminderLang = "en" | "hi" | "hinglish";
 
 export const REMINDER_LANGS: { key: ReminderLang; label: string }[] = [
