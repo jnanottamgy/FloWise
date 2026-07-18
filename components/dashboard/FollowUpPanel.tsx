@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { Send, X } from "lucide-react";
@@ -28,17 +28,51 @@ function PanelInner({
     queryFn: () => postFollowup(active, invoice.id),
   });
   const [message, setMessage] = useState("");
+  const asideRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     if (data?.draft) setMessage(data.draft);
   }, [data]);
 
+  // Esc to close + focus trap + restore focus to the trigger on unmount.
   useEffect(() => {
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    const focusables = () =>
+      asideRef.current
+        ? Array.from(
+            asideRef.current.querySelectorAll<HTMLElement>(
+              'button, textarea, a[href], input, [tabindex]:not([tabindex="-1"])',
+            ),
+          ).filter((el) => !el.hasAttribute("disabled"))
+        : [];
+
+    const t = window.setTimeout(() => focusables()[0]?.focus(), 60);
+
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key === "Tab") {
+        const f = focusables();
+        if (!f.length) return;
+        const first = f[0];
+        const last = f[f.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
     };
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    return () => {
+      window.clearTimeout(t);
+      document.removeEventListener("keydown", onKey);
+      previouslyFocused?.focus?.();
+    };
   }, [onClose]);
 
   return (
@@ -51,7 +85,9 @@ function PanelInner({
         onClick={onClose}
       />
       <motion.aside
+        ref={asideRef}
         role="dialog"
+        aria-modal="true"
         aria-label={`Follow-up for ${invoice.id}`}
         initial={{ x: "100%" }}
         animate={{ x: 0 }}

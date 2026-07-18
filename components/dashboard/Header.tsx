@@ -5,21 +5,27 @@ import { motion } from "framer-motion";
 import { Logo } from "@/components/brand/Logo";
 import { BusinessSwitcher } from "./BusinessSwitcher";
 import { useBusiness } from "@/lib/businessContext";
+import { cn } from "@/lib/utils";
 
 function CircleButton({
   children,
   label,
   dot,
+  className,
 }: {
   children: React.ReactNode;
   label: string;
   dot?: boolean;
+  className?: string;
 }) {
   return (
     <motion.button
       whileHover={{ y: -2 }}
       aria-label={label}
-      className="glass-hover relative grid h-12 w-12 place-items-center rounded-full border border-border bg-card text-ink shadow-soft"
+      className={cn(
+        "glass-hover relative grid h-12 w-12 place-items-center rounded-full border border-border bg-card text-ink shadow-soft",
+        className,
+      )}
     >
       {children}
       {dot && (
@@ -51,16 +57,20 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="glass-hover flex h-12 items-center gap-2 rounded-full border border-border bg-card pl-5 pr-1.5 shadow-soft">
+        {/* Full search pill on sm+; collapses to an icon button on mobile */}
+        <div className="glass-hover hidden h-12 items-center gap-2 rounded-full border border-border bg-card pl-5 pr-1.5 shadow-soft sm:flex">
           <input
             placeholder="Search invoices…"
             aria-label="Search invoices"
-            className="w-40 bg-transparent text-body text-ink outline-none placeholder:text-muted sm:w-56"
+            className="w-40 bg-transparent text-body text-ink outline-none placeholder:text-muted md:w-56"
           />
           <span className="grid h-9 w-9 place-items-center rounded-full bg-ink text-white">
             <Search size={16} />
           </span>
         </div>
+        <CircleButton label="Search" className="sm:hidden">
+          <Search size={18} />
+        </CircleButton>
         <CircleButton label="Messages" dot>
           <MessageSquare size={18} />
         </CircleButton>

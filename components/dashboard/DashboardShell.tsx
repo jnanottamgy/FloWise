@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
+import { MobileNav } from "./MobileNav";
 
 /** Outer chrome: centered surface, floating sidebar, header, and a 4-column
  *  content grid that the dashboard rows (E5–E8) slot into. */
@@ -16,7 +17,10 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         className="mx-auto max-w-[1700px]"
       >
         <Header />
-        <div className="mt-6 flex gap-6">
+        <div className="mt-6">
+          <MobileNav />
+        </div>
+        <div className="flex gap-6">
           <Sidebar />
           <div className="grid flex-1 auto-rows-min grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
             {children}

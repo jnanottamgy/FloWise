@@ -1,17 +1,16 @@
 "use client";
 
 import { motion } from "framer-motion";
-import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  ResponsiveContainer,
-} from "recharts";
+import dynamic from "next/dynamic";
 import type { LucideIcon } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { CountUp } from "./CountUp";
 import { cn } from "@/lib/utils";
+
+const MiniSpark = dynamic(() => import("./charts/MiniSpark"), {
+  ssr: false,
+  loading: () => null,
+});
 
 export interface MetricCardProps {
   title: string;
@@ -21,51 +20,6 @@ export interface MetricCardProps {
   series: number[];
   chart: "bar" | "area";
   highlight?: boolean;
-}
-
-function MiniChart({
-  series,
-  chart,
-  highlight,
-}: {
-  series: number[];
-  chart: "bar" | "area";
-  highlight?: boolean;
-}) {
-  const data = (series.length ? series : [0, 0]).map((v, i) => ({ i, v }));
-  const stroke = highlight ? "#FFFFFF" : "#5F786A";
-  const gradId = `spark-${highlight ? "hl" : "olive"}`;
-
-  if (chart === "bar") {
-    return (
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 2, bottom: 2 }}>
-          <Bar dataKey="v" fill={stroke} radius={[2, 2, 0, 0]} />
-        </BarChart>
-      </ResponsiveContainer>
-    );
-  }
-  return (
-    <ResponsiveContainer width="100%" height="100%">
-      <AreaChart data={data} margin={{ top: 4, bottom: 2 }}>
-        <defs>
-          <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={stroke} stopOpacity={highlight ? 0.5 : 0.25} />
-            <stop offset="100%" stopColor={stroke} stopOpacity={0} />
-          </linearGradient>
-        </defs>
-        <Area
-          type="monotone"
-          dataKey="v"
-          stroke={stroke}
-          strokeWidth={2}
-          fill={`url(#${gradId})`}
-          dot={false}
-          isAnimationActive
-        />
-      </AreaChart>
-    </ResponsiveContainer>
-  );
 }
 
 export function MetricCard({
@@ -114,7 +68,7 @@ export function MetricCard({
           </div>
         </div>
         <div className="h-12 w-20 shrink-0">
-          <MiniChart series={series} chart={chart} highlight={highlight} />
+          <MiniSpark series={series} chart={chart} highlight={highlight} />
         </div>
       </Card>
     </motion.div>
