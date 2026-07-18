@@ -32,7 +32,9 @@ export function ForecastCard() {
     <Card id="sec-forecast" className="scroll-mt-6 flex flex-col sm:col-span-2">
       <div>
         <h3 className="text-section font-semibold text-ink">Will I run out of cash?</h3>
-        <p className="text-caption text-muted">Your cash, looking ahead</p>
+        <p className="text-caption text-muted">
+          Money in your bank, over the next 90 days
+        </p>
       </div>
 
       <div className="mt-3 grid grid-cols-4 gap-2">
@@ -49,13 +51,23 @@ export function ForecastCard() {
       <div
         className={cn(
           "mt-3 flex items-start gap-2 rounded-2xl p-3 text-caption leading-relaxed",
-          f.ok ? "bg-success/[0.06] text-ink/80" : "bg-warning/[0.09] text-ink/85",
+          f.status === "healthy"
+            ? "bg-success/[0.06] text-ink/80"
+            : f.status === "watch"
+              ? "bg-warning/[0.09] text-ink/85"
+              : "bg-error/[0.07] text-ink/85",
         )}
       >
-        {f.ok ? (
+        {f.status === "healthy" ? (
           <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-success" />
         ) : (
-          <TriangleAlert size={16} className="mt-0.5 shrink-0 text-warning" />
+          <TriangleAlert
+            size={16}
+            className={cn(
+              "mt-0.5 shrink-0",
+              f.status === "watch" ? "text-warning" : "text-error",
+            )}
+          />
         )}
         <span>{f.explanation}</span>
       </div>

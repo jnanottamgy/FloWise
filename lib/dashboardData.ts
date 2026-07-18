@@ -109,7 +109,12 @@ export function useOverview(): Overview {
     const unpaid = invoices.filter((i) => i.status === "unpaid");
     const metrics = money.data?.metrics ?? null;
     const forecast = metrics
-      ? forecastCash(metrics.bankBalance, metrics.avgWeeklyOutflow, unpaid)
+      ? forecastCash(
+          metrics.bankBalance,
+          metrics.avgWeeklyOutflow,
+          metrics.avgWeeklyInflow,
+          unpaid,
+        )
       : null;
     const actions = buildActions(invoices, metrics, forecast, sentIds);
     return {

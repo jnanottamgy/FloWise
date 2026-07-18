@@ -40,13 +40,13 @@ export function buildActions(
     });
   }
 
-  // Low cash coming up (warning) — only if the forecast flags it.
-  if (forecast && !forecast.ok) {
+  // Low cash coming up — only when the forecast actually flags it.
+  if (forecast && forecast.status !== "healthy") {
     actions.push({
       id: "lowcash",
-      urgency: "warning",
-      title: `Low cash expected in about ${forecast.safeDays} days`,
-      sub: "Collect a couple of payments early to stay safe",
+      urgency: forecast.status === "risky" ? "urgent" : "warning",
+      title: `Cash gets tight in about ${forecast.safeDays} days`,
+      sub: "Collect a payment early to stay safe",
       actionLabel: "See why",
       actionType: "view",
     });

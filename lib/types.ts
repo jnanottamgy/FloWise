@@ -142,6 +142,7 @@ export interface MoneyMetrics {
   committedRecurring: number;
   realFreeCash: number;
   avgWeeklyOutflow: number;
+  avgWeeklyInflow: number;
   runwayWeeks: number;
   // Breakdowns
   byMode: ModeTotal[];

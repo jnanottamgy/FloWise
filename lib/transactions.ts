@@ -85,6 +85,7 @@ export function computeMoneyMetrics(
   const days = Math.max(7, daysBetween(earliest, TODAY));
   const weeks = days / 7;
   const avgWeeklyOutflow = Math.round(moneyOut / weeks);
+  const avgWeeklyInflow = Math.round(moneyIn / weeks);
   const runwayWeeks =
     avgWeeklyOutflow > 0
       ? Math.round((realFreeCash / avgWeeklyOutflow) * 10) / 10
@@ -118,6 +119,7 @@ export function computeMoneyMetrics(
     committedRecurring,
     realFreeCash,
     avgWeeklyOutflow,
+    avgWeeklyInflow,
     runwayWeeks,
     byMode,
     byCategory,

@@ -1,5 +1,5 @@
 // Plain-language cash forecast: will the owner run short, and when?
-// Pure + deterministic.
+// Pure + deterministic. Nets ongoing income against outgo so it isn't doom-y.
 import type { EnrichedInvoice } from "./types";
 import { TODAY, daysBetween } from "./riskEngine";
 import { formatDate, formatINR } from "./format";
@@ -16,30 +16,36 @@ export interface ForecastPoint {
   balance: number;
 }
 
+export type ForecastStatus = "healthy" | "watch" | "risky";
+
 export interface Forecast {
-  todayCash: number;
+  todayCash: number; // bank balance today
   points: ForecastPoint[];
   horizons: { d0: number; d7: number; d30: number; d90: number };
   safeDays: number; // days cash stays above the safety threshold (capped 90)
   low: { balance: number; days: number };
   threshold: number;
-  ok: boolean;
+  status: ForecastStatus;
+  ok: boolean; // status === "healthy"
   explanation: string;
 }
 
 /**
- * Project daily cash for 90 days: start at bank balance, drain at the average
- * daily outflow, and add each unpaid invoice around when it should arrive.
+ * Project daily bank cash for 90 days: start at the bank balance, apply the net
+ * daily flow (average outflow minus average ongoing inflow), and add each unpaid
+ * invoice around when it should arrive.
  */
 export function forecastCash(
   bankBalance: number,
   avgWeeklyOutflow: number,
+  avgWeeklyInflow: number,
   unpaid: EnrichedInvoice[],
 ): Forecast {
-  const avgDaily = avgWeeklyOutflow / 7;
+  // Net daily burn (negative = the business is cash-positive and growing).
+  const netDaily = (avgWeeklyOutflow - avgWeeklyInflow) / 7;
   const threshold = Math.max(50000, Math.round(avgWeeklyOutflow));
 
-  // Expected inflow per day-offset (overdue expected within ~3 days).
+  // One-time receivables expected around their due date (overdue → ~3 days).
   const inflowByDay: Record<number, number> = {};
   for (const inv of unpaid) {
     let dd = daysBetween(TODAY, inv.dueDate);
@@ -49,13 +55,13 @@ export function forecastCash(
   }
 
   const balances: number[] = [];
-  let cumInflow = 0;
+  let cumRecv = 0;
   let low = { balance: bankBalance, days: 0 };
   let safeDays = 91;
 
   for (let d = 0; d <= 90; d++) {
-    cumInflow += inflowByDay[d] ?? 0;
-    const bal = bankBalance + cumInflow - avgDaily * d;
+    cumRecv += inflowByDay[d] ?? 0;
+    const bal = bankBalance + cumRecv - netDaily * d;
     balances[d] = bal;
     if (bal < low.balance) low = { balance: Math.round(bal), days: d };
     if (bal < threshold && safeDays === 91) safeDays = d;
@@ -75,13 +81,21 @@ export function forecastCash(
     d90: Math.round(balances[90]),
   };
 
-  const ok = safeDays > 30;
   const cappedSafe = Math.min(safeDays, 90);
-  const explanation = ok
-    ? `You have enough cash for at least the next ${cappedSafe >= 90 ? "90+" : cappedSafe} days. You're on track.`
-    : `Cash may fall to about ${formatINR(low.balance)} around ${formatDate(
-        isoAddDays(TODAY, low.days),
-      )} because regular bills like salaries and rent are due. Collecting a couple of payments early will keep you safe.`;
+  const status: ForecastStatus =
+    safeDays >= 90 && horizons.d90 >= threshold
+      ? "healthy"
+      : cappedSafe > 30
+        ? "watch"
+        : "risky";
+
+  const dipDate = formatDate(isoAddDays(TODAY, cappedSafe));
+  const explanation =
+    status === "healthy"
+      ? `You're on track — your cash stays healthy for the next 90 days.`
+      : status === "watch"
+        ? `You're comfortable for about ${cappedSafe} days, but cash gets tight around ${dipDate} if collections slow down. Bringing in one payment early keeps you safe.`
+        : `Heads up — cash could run short in about ${cappedSafe} days (around ${dipDate}). Collect a couple of payments now to stay safe.`;
 
   return {
     todayCash: Math.round(balances[0]),
@@ -90,7 +104,8 @@ export function forecastCash(
     safeDays: cappedSafe,
     low,
     threshold,
-    ok,
+    status,
+    ok: status === "healthy",
     explanation,
   };
 }
