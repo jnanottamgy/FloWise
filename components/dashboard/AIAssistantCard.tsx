@@ -1,12 +1,19 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Sparkles } from "lucide-react";
+import { Loader2, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { useSummary } from "@/lib/dashboardData";
+import { useInsight, useSummary } from "@/lib/dashboardData";
+import { summaryTemplate } from "@/lib/drafts";
 
 export function AIAssistantCard() {
-  const { data, isLoading } = useSummary();
+  const { data: sum } = useSummary();
+  const { data: insight, isFetching } = useInsight();
+
+  // Instant deterministic summary; silently upgraded to Gemma when it arrives.
+  const deterministic = sum ? summaryTemplate(sum.business.name, sum.metrics) : "";
+  const text = insight?.aiSummary || deterministic;
+  const refining = isFetching && !insight;
 
   return (
     <Card className="flex flex-col">
@@ -24,12 +31,27 @@ export function AIAssistantCard() {
       </div>
 
       <div className="mt-3 flex items-center justify-center gap-1.5">
-        <span className="h-2 w-2 rounded-full bg-success" />
-        <span className="text-caption font-medium text-muted">AI Ready</span>
+        {refining ? (
+          <>
+            <Loader2 size={13} className="animate-spin text-olive" />
+            <span className="text-caption font-medium text-muted">
+              Gemma refining…
+            </span>
+          </>
+        ) : (
+          <>
+            <span className="h-2 w-2 rounded-full bg-success" />
+            <span className="text-caption font-medium text-muted">AI Ready</span>
+          </>
+        )}
       </div>
 
       <div className="mt-3 flex-1">
-        {isLoading ? (
+        {text ? (
+          <p className="text-center text-caption leading-relaxed text-ink/80">
+            {text}
+          </p>
+        ) : (
           <div className="space-y-2">
             {[0, 1, 2].map((i) => (
               <div
@@ -39,10 +61,6 @@ export function AIAssistantCard() {
               />
             ))}
           </div>
-        ) : (
-          <p className="text-center text-caption leading-relaxed text-ink/80">
-            {data?.aiSummary}
-          </p>
         )}
       </div>
 

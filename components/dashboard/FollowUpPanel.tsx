@@ -2,13 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useQuery } from "@tanstack/react-query";
 import { Send, X } from "lucide-react";
 import { RiskBadge } from "./RiskBadge";
 import { useInvoices } from "@/lib/dashboardData";
 import { useDashboardState } from "@/lib/dashboardState";
 import { useBusiness, type ActiveBusiness } from "@/lib/businessContext";
-import { postFollowup } from "@/lib/api";
+import { followupTemplate } from "@/lib/drafts";
 import { formatDate, formatINR } from "@/lib/format";
 import type { EnrichedInvoice } from "@/lib/types";
 
@@ -23,16 +22,11 @@ function PanelInner({
   onClose: () => void;
   onSend: (message: string) => void;
 }) {
-  const { data, isLoading } = useQuery({
-    queryKey: ["followup", active.id, invoice.id],
-    queryFn: () => postFollowup(active, invoice.id),
-  });
-  const [message, setMessage] = useState("");
+  // Opens instantly with a ready-to-send draft.
+  const [message, setMessage] = useState(() =>
+    followupTemplate(active.name, invoice),
+  );
   const asideRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    if (data?.draft) setMessage(data.draft);
-  }, [data]);
 
   // Esc to close + focus trap + restore focus to the trigger on unmount.
   useEffect(() => {
@@ -124,32 +118,21 @@ function PanelInner({
         </div>
 
         <div className="flex-1 overflow-y-auto p-6">
-          <label className="text-caption font-medium text-muted">
+          <label className="mb-2 block text-caption font-medium text-muted">
             Message
           </label>
-          {isLoading ? (
-            <div className="mt-2 space-y-2">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="h-3 animate-pulse rounded-full bg-black/[0.06]"
-                />
-              ))}
-            </div>
-          ) : (
-            <textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              rows={14}
-              className="mt-2 w-full resize-none rounded-3xl border border-border bg-bg p-4 text-body leading-relaxed text-ink outline-none transition focus:border-olive focus:ring-2 focus:ring-olive/30"
-            />
-          )}
+          <textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            rows={15}
+            className="w-full resize-none rounded-3xl border border-border bg-bg p-4 text-body leading-relaxed text-ink outline-none transition focus:border-olive focus:ring-2 focus:ring-olive/30"
+          />
         </div>
 
         <div className="flex items-center gap-3 border-t border-border p-6">
           <button
             onClick={() => onSend(message)}
-            disabled={isLoading || !message.trim()}
+            disabled={!message.trim()}
             className="inline-flex flex-1 items-center justify-center gap-2 rounded-pill bg-olive py-3 text-body font-semibold text-white transition hover:bg-olive-dark disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Send size={16} /> Send

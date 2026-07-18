@@ -1,20 +1,111 @@
 import "server-only";
 import type { Business, EnrichedInvoice, Metrics } from "./types";
 import { formatDate, formatINR } from "./format";
+import { followupTemplate, summaryTemplate } from "./drafts";
 
-const MODEL = "gemma-4-26b-a4b-it";
+// Model is configurable via env (GEMMA_MODEL) but defaults to the specified one.
+const MODEL = process.env.GEMMA_MODEL || "gemma-4-26b-a4b-it";
 const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
+const TIMEOUT_MS = 45_000;
+// Enough for the model to reason far enough to produce a complete draft we can
+// salvage. Short answers (summaries) reach a draft early; longer answers
+// (emails) need more room, so callers can raise it.
+const MAX_OUTPUT_TOKENS = 1536;
 
 export function hasGemmaKey(): boolean {
   return Boolean(process.env.GEMINI_API_KEY);
 }
 
+// Gemma-4 "thinks out loud" and cannot be told to stop. So we let it reason but
+// demand the final answer inside <out>…</out>, then extract that — robustly,
+// because the model echoes the tag names inside its own reasoning.
+const OUTPUT_RULE =
+  "\n\nWhen you are completely finished, write your final answer between the markers <out> and </out>. " +
+  "Put nothing except the final answer between those markers.";
+
+const REASONING_MARKERS =
+  /(\*\s|Draft\s?\d|Refin|Constraint Check|Summary Idea|Self-correction|Let's try|Re-evaluat|Final (Version|Text|Polish))/i;
+
+function stripTags(s: string): string {
+  return s.replace(/^<\/?out>/i, "").replace(/<\/?out>$/i, "").trim();
+}
+
+function clean(s: string): string {
+  return s.replace(/^["'*\s]+/, "").replace(/["'*\s]+$/, "").trim();
+}
+
+/** Salvage a complete multi-line email from the reasoning. Each email block
+ *  runs from a `Subject:` line to the next reasoning bullet; we keep only blocks
+ *  that reach a sign-off (so we never surface a truncated draft). */
+function salvageEmail(raw: string): string | null {
+  const blocks = [...raw.matchAll(/Subject:[\s\S]*?(?=\n[ \t]*\*|$)/gi)]
+    .map((m) => clean(m[0]))
+    .filter((b) => b.length >= 80);
+  const complete = blocks.filter((b) =>
+    /(warm regards|best regards|kind regards|regards|sincerely|thank you|thanks|best wishes)/i.test(
+      b,
+    ),
+  );
+  return complete.length ? complete[complete.length - 1] : null;
+}
+
+/** Salvage the model's best complete draft from its own reasoning, e.g. lines
+ *  like `*Draft 3 (Warmer):* <text>` or `Final Version: <text>`. This lets us
+ *  succeed at a lower token budget (faster) even if it never reaches <out>. */
+function salvageDraft(raw: string): string | null {
+  const re =
+    /(?:Draft\s*\d[^\n:]*:|Final(?:\s+\w+)?:|Revised:|Polished:)\s*([^\n]{25,900})/gi;
+  const cands = [...raw.matchAll(re)]
+    .map((m) => clean(m[1]))
+    .filter(
+      (s) =>
+        s.length >= 25 &&
+        !/<\/?out>/i.test(s) &&
+        !REASONING_MARKERS.test(s) &&
+        /[.!?]$/.test(s), // looks like a finished sentence
+    );
+  return cands.length ? cands[cands.length - 1] : null;
+}
+
+/** Pull the final answer out of the model's verbose response. */
+function extractAnswer(raw: string): string | null {
+  // 1) Real answers are substantial; the echoed "<out> and </out>" fragments are tiny.
+  const closed = [...raw.matchAll(/<out>([\s\S]*?)<\/out>/gi)]
+    .map((m) => m[1].trim())
+    .filter((s) => s.length >= 25);
+  if (closed.length) return stripTags(closed[closed.length - 1]);
+
+  // 2) Opened the final <out> but got truncated before closing — salvage the tail.
+  const open = raw.lastIndexOf("<out>");
+  if (open !== -1) {
+    const tail = stripTags(raw.slice(open + 5));
+    if (tail.length >= 25) return tail;
+  }
+
+  // 3) No usable <out>: salvage the model's own finished draft from the reasoning.
+  if (/Subject:/i.test(raw)) {
+    const email = salvageEmail(raw);
+    if (email) return email;
+  }
+  const draft = salvageDraft(raw);
+  if (draft) return draft;
+
+  // 4) A short, reasoning-free direct answer.
+  const t = raw.trim();
+  if (t && t.length < 900 && !REASONING_MARKERS.test(t)) return t;
+  return null;
+}
+
 /**
  * Call Gemma via the Gemini API. NEVER throws — on a missing key, HTTP error,
- * or network failure it returns the provided fallback, so the app always works
- * (great for offline hackathon demos).
+ * timeout, or an unparseable "thinking out loud" response it returns the
+ * provided fallback, so the app always works (and never hangs the UI).
  */
-export async function callGemma(prompt: string, fallback: string): Promise<string> {
+export async function callGemma(
+  prompt: string,
+  fallback: string,
+  maxTokens: number = MAX_OUTPUT_TOKENS,
+): Promise<string> {
   const key = process.env.GEMINI_API_KEY;
   if (!key) return fallback;
 
@@ -22,8 +113,12 @@ export async function callGemma(prompt: string, fallback: string): Promise<strin
     const res = await fetch(`${ENDPOINT}?key=${encodeURIComponent(key)}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt + OUTPUT_RULE }] }],
+        generationConfig: { temperature: 0.6, maxOutputTokens: maxTokens },
+      }),
       cache: "no-store",
+      signal: AbortSignal.timeout(TIMEOUT_MS),
     });
     if (!res.ok) {
       console.error("[gemma] HTTP", res.status, (await res.text().catch(() => "")).slice(0, 200));
@@ -31,18 +126,18 @@ export async function callGemma(prompt: string, fallback: string): Promise<strin
     }
     const data = await res.json();
     const text: unknown = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    return typeof text === "string" && text.trim() ? text.trim() : fallback;
+    if (typeof text !== "string" || !text.trim()) return fallback;
+    return extractAnswer(text) ?? fallback;
   } catch (err) {
-    console.error("[gemma] error", err);
+    console.error("[gemma] error", (err as Error)?.name ?? err);
     return fallback;
   }
 }
 
 // ---------------------------------------------------------------------------
-// Caches — keyed by content signature so sample AND custom businesses are safe.
+// Cache — keyed by content signature so sample AND custom businesses are safe.
 // ---------------------------------------------------------------------------
 const summaryCache = new Map<string, string>();
-const reasonCache = new Map<string, string>();
 
 // ---------------------------------------------------------------------------
 // 1) Plain-language cash-flow summary for the business owner.
@@ -55,10 +150,7 @@ export async function generateSummary(
   const cached = summaryCache.get(key);
   if (cached) return cached;
 
-  const fallback =
-    `${business.name} has ${formatINR(m.outstanding)} outstanding across ${m.totalInvoices} invoices, ` +
-    `with ${formatINR(m.overdue)} already overdue and ${m.flaggedCount} invoice${m.flaggedCount === 1 ? "" : "s"} flagged as at-risk. ` +
-    `Collections are running at about ${m.collectionRatePct}% — chasing the flagged clients first will protect your cash flow.`;
+  const fallback = summaryTemplate(business.name, m);
 
   const prompt =
     `You are a friendly cash-flow assistant for ${business.name}, a ${business.industry.toLowerCase()}. ` +
@@ -78,50 +170,28 @@ export async function generateSummary(
 
 // ---------------------------------------------------------------------------
 // 2) One-line reason a flagged invoice is at risk (<= 15 words).
+// Computed deterministically from the data: precise, instant, and — because it
+// quotes exact figures/day-counts — clearer than a verbose model's phrasing.
 // ---------------------------------------------------------------------------
-export async function generateInvoiceReason(
-  business: Business,
-  inv: EnrichedInvoice,
-): Promise<string> {
-  const key = `${business.id}|${inv.id}|${inv.client}|${inv.amount}|${inv.risk}|${inv.daysToDue}`;
-  const cached = reasonCache.get(key);
-  if (cached) return cached;
-
-  let fallback: string;
+export function deterministicReason(inv: EnrichedInvoice): string {
   if (inv.overdue) {
-    fallback =
+    return (
       `${inv.client} is ${Math.abs(inv.daysToDue)} days overdue on ${formatINR(inv.amount)}` +
-      `${inv.clientHasLateHistory ? " and has paid late before." : "."}`;
-  } else if (inv.clientHasLateHistory) {
-    fallback = `${inv.client} has a history of late payment; ${formatINR(inv.amount)} is still open.`;
-  } else {
-    fallback = `${formatINR(inv.amount)} from ${inv.client} falls due in ${inv.daysToDue} day${inv.daysToDue === 1 ? "" : "s"} and is unpaid.`;
+      `${inv.clientHasLateHistory ? " and has paid late before." : "."}`
+    );
   }
-
-  const prompt =
-    `In 15 words or fewer, explain why this invoice for ${business.name} is at risk. ` +
-    `Plain sentence, no markdown, no lead-in.\n` +
-    `Client: ${inv.client}\nAmount: ${formatINR(inv.amount)}\nDue: ${formatDate(inv.dueDate)}\n` +
-    `${inv.overdue ? `Overdue by ${Math.abs(inv.daysToDue)} days` : `Due in ${inv.daysToDue} days`}\n` +
-    `Client has paid late before: ${inv.clientHasLateHistory ? "yes" : "no"}`;
-
-  const text = await callGemma(prompt, fallback);
-  reasonCache.set(key, text);
-  return text;
+  if (inv.clientHasLateHistory) {
+    return `${inv.client} has a history of late payment; ${formatINR(inv.amount)} is still open.`;
+  }
+  return `${formatINR(inv.amount)} from ${inv.client} falls due in ${inv.daysToDue} day${inv.daysToDue === 1 ? "" : "s"} and is unpaid.`;
 }
 
-/** Fill aiReason for every flagged invoice (in parallel). Green stays null. */
-export async function attachReasons(
-  business: Business,
-  invoices: EnrichedInvoice[],
-): Promise<EnrichedInvoice[]> {
-  await Promise.all(
-    invoices.map(async (inv) => {
-      if (inv.risk !== "green") {
-        inv.aiReason = await generateInvoiceReason(business, inv);
-      }
-    }),
-  );
+/** Fill aiReason for every flagged invoice. Green stays null. Synchronous —
+ *  keeps the invoices endpoint instant. */
+export function attachReasons(invoices: EnrichedInvoice[]): EnrichedInvoice[] {
+  for (const inv of invoices) {
+    if (inv.risk !== "green") inv.aiReason = deterministicReason(inv);
+  }
   return invoices;
 }
 
@@ -136,15 +206,7 @@ export async function generateFollowup(
     ? `overdue by ${Math.abs(inv.daysToDue)} days`
     : `due on ${formatDate(inv.dueDate)}`;
 
-  const fallback =
-    `Subject: Payment reminder — Invoice ${inv.id}\n\n` +
-    `Dear ${inv.client},\n\n` +
-    `I hope you're doing well. This is a gentle reminder that invoice ${inv.id} for ${formatINR(inv.amount)}, ` +
-    `${inv.overdue ? `was due on ${formatDate(inv.dueDate)} and is now ${state}` : `is ${state}`}. ` +
-    `We'd be grateful if you could confirm the expected payment date at your earliest convenience.\n\n` +
-    `We truly value our partnership and want to keep everything running smoothly. ` +
-    `Please let me know if there's anything you need from us to help process this.\n\n` +
-    `Warm regards,\nAccounts Team\n${business.name}`;
+  const fallback = followupTemplate(business.name, inv);
 
   const prompt =
     `Draft a polite but firm follow-up email from the accounts team of ${business.name} ` +
@@ -153,5 +215,6 @@ export async function generateFollowup(
     `Sign off as "Accounts Team, ${business.name}".\n\n` +
     `Invoice: ${inv.id}\nAmount: ${formatINR(inv.amount)}\nDue date: ${formatDate(inv.dueDate)}\nStatus: ${state}`;
 
-  return callGemma(prompt, fallback);
+  // Emails need more room than summaries for a complete draft to appear.
+  return callGemma(prompt, fallback, 3000);
 }

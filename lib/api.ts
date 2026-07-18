@@ -38,6 +38,23 @@ export async function fetchSummary(
   );
 }
 
+export async function fetchInsight(
+  active: ActiveBusiness,
+): Promise<{ aiSummary: string }> {
+  if (active.isCustom) {
+    return readJson(
+      await fetch("/api/insight", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(customBody(active)),
+      }),
+    );
+  }
+  return readJson(
+    await fetch(`/api/insight?business=${encodeURIComponent(active.id)}`),
+  );
+}
+
 export async function fetchInvoices(
   active: ActiveBusiness,
 ): Promise<InvoicesResponse> {

@@ -2,15 +2,26 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useBusiness } from "./businessContext";
-import { fetchInvoices, fetchSummary } from "./api";
+import { fetchInsight, fetchInvoices, fetchSummary } from "./api";
 
-/** Summary + metrics + AI summary for the active business. */
+/** Metrics for the active business (instant — no AI). */
 export function useSummary() {
   const { activeBusiness } = useBusiness();
   return useQuery({
     queryKey: ["summary", activeBusiness?.id],
     enabled: Boolean(activeBusiness),
     queryFn: () => fetchSummary(activeBusiness!),
+  });
+}
+
+/** AI cash-flow narrative for the active business (loads separately/slowly). */
+export function useInsight() {
+  const { activeBusiness } = useBusiness();
+  return useQuery({
+    queryKey: ["insight", activeBusiness?.id],
+    enabled: Boolean(activeBusiness),
+    queryFn: () => fetchInsight(activeBusiness!),
+    staleTime: 5 * 60_000,
   });
 }
 

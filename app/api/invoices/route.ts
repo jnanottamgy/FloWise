@@ -6,8 +6,8 @@ import type { Business, InvoicesResponse } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-async function build(business: Business): Promise<InvoicesResponse> {
-  const invoices = await attachReasons(business, enrichInvoices(business.invoices));
+function build(business: Business): InvoicesResponse {
+  const invoices = attachReasons(enrichInvoices(business.invoices));
   return {
     business: {
       id: business.id,
@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
   if (!business) {
     return NextResponse.json({ error: "Unknown business" }, { status: 404 });
   }
-  return NextResponse.json(await build(business));
+  return NextResponse.json(build(business));
 }
 
 export async function POST(req: NextRequest) {
@@ -34,5 +34,5 @@ export async function POST(req: NextRequest) {
   if (!business) {
     return NextResponse.json({ error: "Unknown business" }, { status: 404 });
   }
-  return NextResponse.json(await build(business));
+  return NextResponse.json(build(business));
 }
