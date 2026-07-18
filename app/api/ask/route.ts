@@ -8,6 +8,7 @@ import { getBankBalance, getTransactions } from "@/lib/transactionsData";
 import { normalizeBusiness } from "@/lib/resolveBusiness";
 import { formatINR } from "@/lib/format";
 import { categoryLabel } from "@/lib/labels";
+import { deterministicAnswer, type AskContext } from "@/lib/askAnswer";
 import type { Business, MoneyMetrics, Transaction } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -73,15 +74,39 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // A computed answer — always sensible, used as the fallback so we never dodge.
+  const enriched = enrichInvoices(business.invoices);
+  const invMetrics = computeMetrics(business.invoices);
+  const topDebtors = enriched
+    .filter((i) => i.status === "unpaid")
+    .sort((a, b) => b.amount - a.amount)
+    .map((i) => ({
+      client: i.client,
+      amount: i.amount,
+      overdue: i.overdue,
+      days: Math.abs(i.daysToDue),
+    }));
+  const askCtx: AskContext = {
+    businessName: business.name,
+    outstanding: invMetrics.outstanding,
+    overdue: invMetrics.overdue,
+    collected90d: invMetrics.collected90d,
+    topDebtors,
+    realFreeCash: money?.realFreeCash ?? 0,
+    committedRecurring: money?.committedRecurring ?? 0,
+    moneyIn: money?.moneyIn ?? 0,
+    moneyOut: money?.moneyOut ?? 0,
+    byCategory: money?.byCategory ?? [],
+    recurring: money?.recurring ?? [],
+  };
+  const fallback = deterministicAnswer(question, askCtx);
+
   const context = buildContext(business, money);
   const prompt =
     `You are FloWise, a warm, plain-talking money assistant for an Indian small business owner. ` +
     `Answer the owner's question using ONLY the data below. Reply in ONE short paragraph (max 3 sentences), ` +
     `in simple language, using rupee figures. If the data does not contain the answer, say so briefly.\n\n` +
     `DATA:\n${context}\n\nQUESTION: ${question}`;
-
-  const fallback =
-    "I can answer from your own numbers — try asking about who owes you the most, your biggest expense, or whether you're stretched thin.";
 
   const answer = await callGemma(prompt, fallback);
   return NextResponse.json({ answer });
