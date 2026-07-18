@@ -1,0 +1,18 @@
+{
+  "clients": {
+    "Meridian Retail": { "avgDaysLate": 3, "suppliers": 4, "onTimeRate": 0.88 },
+    "Kavya Fashions": { "avgDaysLate": 1, "suppliers": 3, "onTimeRate": 0.95 },
+    "Sunrise Garments": { "avgDaysLate": 24, "suppliers": 3, "onTimeRate": 0.38 },
+    "Orion Offices": { "avgDaysLate": 2, "suppliers": 5, "onTimeRate": 0.9 },
+    "Lila Events": { "avgDaysLate": 19, "suppliers": 2, "onTimeRate": 0.5 },
+    "GreenLeaf Co-work": { "avgDaysLate": 4, "suppliers": 2, "onTimeRate": 0.85 },
+    "Halcyon Brands": { "avgDaysLate": 6, "suppliers": 4, "onTimeRate": 0.8 },
+    "Meadow FMCG": { "avgDaysLate": 21, "suppliers": 3, "onTimeRate": 0.45 },
+    "Vertex Realty": { "avgDaysLate": 5, "suppliers": 2, "onTimeRate": 0.82 },
+    "Zenith Traders": { "avgDaysLate": 40, "suppliers": 5, "onTimeRate": 0.2 },
+    "Blossom Boutique": { "avgDaysLate": 0, "suppliers": 3, "onTimeRate": 1.0 },
+    "Metro Wholesale": { "avgDaysLate": 12, "suppliers": 4, "onTimeRate": 0.6 },
+    "Nova Exports": { "avgDaysLate": 33, "suppliers": 4, "onTimeRate": 0.28 },
+    "Pinnacle Stores": { "avgDaysLate": 8, "suppliers": 3, "onTimeRate": 0.72 }
+  }
+}

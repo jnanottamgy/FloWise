@@ -8,6 +8,7 @@ import { MoneySection } from "@/components/dashboard/MoneySection";
 import { FlaggedInvoices } from "@/components/dashboard/FlaggedInvoices";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { AIAssistantCard } from "@/components/dashboard/AIAssistantCard";
+import { CreditCheckCard } from "@/components/dashboard/CreditCheckCard";
 import { InProgressTracker } from "@/components/dashboard/InProgressTracker";
 import { FollowUpPanel } from "@/components/dashboard/FollowUpPanel";
 import { DashboardStateProvider } from "@/lib/dashboardState";
@@ -30,6 +31,9 @@ export default function DashboardPage() {
           <FlaggedInvoices />
           <ActivityFeed />
           <AIAssistantCard />
+
+          {/* Credit check — client payment reputation */}
+          <CreditCheckCard />
 
           {/* Row 4 — In Progress */}
           <InProgressTracker />
