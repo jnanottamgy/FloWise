@@ -1,11 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { enrichInvoices } from "@/lib/riskEngine";
+import { attachReasons } from "@/lib/ai";
 import { resolveFromBody, resolveFromQuery } from "@/lib/resolveBusiness";
 import type { Business, InvoicesResponse } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-function build(business: Business): InvoicesResponse {
+async function build(business: Business): Promise<InvoicesResponse> {
+  const invoices = await attachReasons(business, enrichInvoices(business.invoices));
   return {
     business: {
       id: business.id,
@@ -13,7 +15,7 @@ function build(business: Business): InvoicesResponse {
       industry: business.industry,
       email: business.email,
     },
-    invoices: enrichInvoices(business.invoices),
+    invoices,
   };
 }
 
@@ -22,7 +24,7 @@ export async function GET(req: NextRequest) {
   if (!business) {
     return NextResponse.json({ error: "Unknown business" }, { status: 404 });
   }
-  return NextResponse.json(build(business));
+  return NextResponse.json(await build(business));
 }
 
 export async function POST(req: NextRequest) {
@@ -32,5 +34,5 @@ export async function POST(req: NextRequest) {
   if (!business) {
     return NextResponse.json({ error: "Unknown business" }, { status: 404 });
   }
-  return NextResponse.json(build(business));
+  return NextResponse.json(await build(business));
 }

@@ -1,11 +1,14 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { computeMetrics } from "@/lib/metrics";
+import { generateSummary } from "@/lib/ai";
 import { resolveFromBody, resolveFromQuery } from "@/lib/resolveBusiness";
 import type { Business, SummaryResponse } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-function build(business: Business): SummaryResponse {
+async function build(business: Business): Promise<SummaryResponse> {
+  const metrics = computeMetrics(business.invoices);
+  const aiSummary = await generateSummary(business, metrics);
   return {
     business: {
       id: business.id,
@@ -13,8 +16,8 @@ function build(business: Business): SummaryResponse {
       industry: business.industry,
       email: business.email,
     },
-    metrics: computeMetrics(business.invoices),
-    aiSummary: "", // filled by Gemma in E2
+    metrics,
+    aiSummary,
   };
 }
 
@@ -23,7 +26,7 @@ export async function GET(req: NextRequest) {
   if (!business) {
     return NextResponse.json({ error: "Unknown business" }, { status: 404 });
   }
-  return NextResponse.json(build(business));
+  return NextResponse.json(await build(business));
 }
 
 export async function POST(req: NextRequest) {
@@ -33,5 +36,5 @@ export async function POST(req: NextRequest) {
   if (!business) {
     return NextResponse.json({ error: "Unknown business" }, { status: 404 });
   }
-  return NextResponse.json(build(business));
+  return NextResponse.json(await build(business));
 }
