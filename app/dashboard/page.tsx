@@ -4,6 +4,7 @@ import { DashboardGuard } from "@/components/dashboard/DashboardGuard";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { MetricRow } from "@/components/dashboard/MetricRow";
 import { CashFlowRow } from "@/components/dashboard/CashFlowRow";
+import { MoneySection } from "@/components/dashboard/MoneySection";
 import { FlaggedInvoices } from "@/components/dashboard/FlaggedInvoices";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { AIAssistantCard } from "@/components/dashboard/AIAssistantCard";
@@ -21,6 +22,9 @@ export default function DashboardPage() {
 
           {/* Row 2 — chart / gauge / profile */}
           <CashFlowRow />
+
+          {/* Money band — real cash, leaks, tax drawer, all transactions */}
+          <MoneySection />
 
           {/* Row 3 — flagged / activity / AI */}
           <FlaggedInvoices />

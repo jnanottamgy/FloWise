@@ -1,5 +1,9 @@
 import type { ActiveBusiness } from "./businessContext";
-import type { InvoicesResponse, SummaryResponse } from "./types";
+import type {
+  InvoicesResponse,
+  SummaryResponse,
+  TransactionsResponse,
+} from "./types";
 
 // Client-side fetchers. Samples are read by id (GET ?business=<id>); custom
 // workspaces POST their invoices so the server can score them the same way.
@@ -69,6 +73,32 @@ export async function fetchInvoices(
   }
   return readJson(
     await fetch(`/api/invoices?business=${encodeURIComponent(active.id)}`),
+  );
+}
+
+export async function fetchTransactions(
+  active: ActiveBusiness,
+): Promise<TransactionsResponse> {
+  if (active.isCustom) {
+    return readJson(
+      await fetch("/api/transactions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          business: {
+            id: active.id,
+            name: active.name,
+            industry: active.industry,
+            email: active.email,
+          },
+          transactions: active.transactions ?? [],
+          bankBalance: active.bankBalance ?? 0,
+        }),
+      }),
+    );
+  }
+  return readJson(
+    await fetch(`/api/transactions?business=${encodeURIComponent(active.id)}`),
   );
 }
 

@@ -20,6 +20,9 @@ export interface ActiveBusiness {
   email: string;
   isCustom: boolean;
   invoices?: Business["invoices"];
+  // Money transactions for custom/uploaded workspaces (samples load from server).
+  transactions?: import("./types").Transaction[];
+  bankBalance?: number;
 }
 
 interface BusinessContextValue {

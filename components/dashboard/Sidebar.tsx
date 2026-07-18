@@ -6,12 +6,12 @@ import { motion } from "framer-motion";
 import {
   BarChart3,
   FileText,
-  FolderClosed,
   LayoutGrid,
   LogOut,
+  Receipt,
   Settings,
   Sparkles,
-  Users,
+  Wallet,
   type LucideIcon,
 } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
@@ -26,11 +26,11 @@ interface NavItem {
 
 const NAV: NavItem[] = [
   { icon: LayoutGrid, label: "Dashboard", target: "top" },
+  { icon: Wallet, label: "Money", target: "sec-money" },
   { icon: FileText, label: "Invoices", target: "sec-invoices" },
   { icon: Sparkles, label: "AI Workspace", target: "sec-ai" },
   { icon: BarChart3, label: "Analytics", target: "sec-analytics" },
-  { icon: Users, label: "Clients", target: "sec-clients" },
-  { icon: FolderClosed, label: "Documents", target: "sec-documents" },
+  { icon: Receipt, label: "Transactions", target: "sec-transactions" },
 ];
 
 export function scrollToSection(target: string) {

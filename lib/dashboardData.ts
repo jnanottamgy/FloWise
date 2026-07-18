@@ -2,7 +2,12 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useBusiness } from "./businessContext";
-import { fetchInsight, fetchInvoices, fetchSummary } from "./api";
+import {
+  fetchInsight,
+  fetchInvoices,
+  fetchSummary,
+  fetchTransactions,
+} from "./api";
 
 /** Metrics for the active business (instant — no AI). */
 export function useSummary() {
@@ -32,5 +37,15 @@ export function useInvoices() {
     queryKey: ["invoices", activeBusiness?.id],
     enabled: Boolean(activeBusiness),
     queryFn: () => fetchInvoices(activeBusiness!),
+  });
+}
+
+/** All money transactions + money metrics for the active business. */
+export function useTransactions() {
+  const { activeBusiness } = useBusiness();
+  return useQuery({
+    queryKey: ["transactions", activeBusiness?.id],
+    enabled: Boolean(activeBusiness),
+    queryFn: () => fetchTransactions(activeBusiness!),
   });
 }
