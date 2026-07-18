@@ -3,6 +3,7 @@
 import { DashboardGuard } from "@/components/dashboard/DashboardGuard";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { MetricRow } from "@/components/dashboard/MetricRow";
+import { CashFlowRow } from "@/components/dashboard/CashFlowRow";
 import { cn } from "@/lib/utils";
 
 // Labelled placeholders show the grid the content rows (E5–E8) fill.
@@ -26,10 +27,8 @@ export default function DashboardPage() {
         {/* Row 1 — metrics */}
         <MetricRow />
 
-        {/* Row 2 — chart / gauge / profile (E6) */}
-        <Slot label="Cash Flow chart (E6)" className="min-h-[280px] sm:col-span-2" />
-        <Slot label="Collection gauge (E6)" className="min-h-[280px]" />
-        <Slot label="Business profile (E6)" className="min-h-[280px]" />
+        {/* Row 2 — chart / gauge / profile */}
+        <CashFlowRow />
 
         {/* Row 3 — flagged / activity / AI (E7) */}
         <Slot label="Flagged Invoices (E7)" className="min-h-[300px] sm:col-span-2" />
