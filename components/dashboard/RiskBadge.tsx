@@ -2,9 +2,9 @@ import { cn } from "@/lib/utils";
 import type { Risk } from "@/lib/types";
 
 const CONFIG: Record<Risk, { label: string; className: string }> = {
-  red: { label: "At risk", className: "bg-error/10 text-error" },
-  yellow: { label: "Watch", className: "bg-warning/15 text-warning" },
-  green: { label: "Healthy", className: "bg-success/10 text-success" },
+  red: { label: "At risk", className: "bg-error/10 text-[color:var(--error-ink)]" },
+  yellow: { label: "Watch", className: "bg-warning/15 text-[color:var(--warning-ink)]" },
+  green: { label: "Healthy", className: "bg-success/10 text-[color:var(--success-ink)]" },
 };
 
 /** Status conveyed via text label + colour (never colour alone). */

@@ -6,14 +6,20 @@
   --bg: #f8f7f4;
   --card: #ffffff;
   --ink: #111111;
-  --muted: #777777;
+  /* #777 fell below WCAG AA on the warm bg, especially at 10-11px. */
+  --muted: #5d5d5d;
   --border: rgba(0, 0, 0, 0.05);
   --olive: #5f786a;
   --olive-dark: #4e6459;
   --sage: #a7b6a8;
+  /* Soft fills for dots / tints / large numbers … */
   --success: #58a56c;
   --warning: #c7a85b;
   --error: #d06a6a;
+  /* … and darker paired tokens for small status TEXT, which must clear 4.5:1. */
+  --success-ink: #2f7d46;
+  --warning-ink: #8a6a1c;
+  --error-ink: #b23b3b;
   --shadow-card: 0 15px 45px rgba(0, 0, 0, 0.06);
   --radius-card: 28px;
 }

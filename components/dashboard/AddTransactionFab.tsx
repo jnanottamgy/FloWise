@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, Briefcase, MessageSquareText, Plus, User, X } from "lucide-react";
 import { useDashboardState } from "@/lib/dashboardState";
@@ -28,6 +28,46 @@ export function AddTransactionFab() {
   const [showSms, setShowSms] = useState(false);
   const [smsText, setSmsText] = useState("");
   const [smsErr, setSmsErr] = useState<string | null>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  // Esc to close + focus trap + restore focus to the FAB on close.
+  useEffect(() => {
+    if (!open) return;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    const focusables = () =>
+      dialogRef.current
+        ? Array.from(
+            dialogRef.current.querySelectorAll<HTMLElement>(
+              'button, textarea, input, a[href], [tabindex]:not([tabindex="-1"])',
+            ),
+          ).filter((el) => !el.hasAttribute("disabled"))
+        : [];
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        close();
+        return;
+      }
+      if (e.key === "Tab") {
+        const f = focusables();
+        if (!f.length) return;
+        const first = f[0];
+        const last = f[f.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      previouslyFocused?.focus?.();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   function reset() {
     setStep("entry");
@@ -107,7 +147,9 @@ export function AddTransactionFab() {
               onClick={close}
             />
             <motion.div
+              ref={dialogRef}
               role="dialog"
+              aria-modal="true"
               aria-label="Add transaction"
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
@@ -155,7 +197,6 @@ export function AddTransactionFab() {
                         value={smsText}
                         onChange={(e) => setSmsText(e.target.value)}
                         rows={3}
-                        autoFocus
                         placeholder="Paste your bank/UPI SMS here — e.g. Rs.5000 credited… from MERIDIAN RETAIL"
                         className="w-full resize-none rounded-2xl border border-border bg-bg p-3 text-caption text-ink outline-none focus:border-olive focus:ring-2 focus:ring-olive/30"
                       />
@@ -184,15 +225,17 @@ export function AddTransactionFab() {
                   <div className="grid grid-cols-2 gap-2 rounded-pill bg-black/[0.03] p-1">
                     <button
                       onClick={() => setDir("in")}
+                      aria-pressed={dir === "in"}
                       className={cn(
                         "rounded-pill py-2.5 text-body font-medium transition",
-                        dir === "in" ? "bg-success/15 text-success" : "text-muted",
+                        dir === "in" ? "bg-success/15 text-[color:var(--success-ink)]" : "text-muted",
                       )}
                     >
                       Money received
                     </button>
                     <button
                       onClick={() => setDir("out")}
+                      aria-pressed={dir === "out"}
                       className={cn(
                         "rounded-pill py-2.5 text-body font-medium transition",
                         dir === "out" ? "bg-card text-ink shadow-soft" : "text-muted",

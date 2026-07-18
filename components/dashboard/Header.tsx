@@ -75,7 +75,7 @@ export function Header() {
           <Search size={18} />
         </CircleButton>
         <ExportMenu />
-        <CircleButton label="Messages" dot>
+        <CircleButton label="Messages">
           <MessageSquare size={18} />
         </CircleButton>
         <CircleButton label="Notifications">

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   AlertTriangle,
   ArrowRight,
+  Check,
   CheckCircle2,
   Clock,
   MessageCircle,
@@ -36,8 +37,36 @@ export function ActionListCard() {
   const { activeBusiness } = useBusiness();
   const { t, lang } = useLang();
   const name = activeBusiness?.name ?? "Our team";
+  const bid = activeBusiness?.id ?? "";
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+
+  // Dismissals are persisted per business so a "paid" bill can't reappear on
+  // reload and get logged a second time (a duplicate expense).
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(`flowise.dismissedActions.${bid}`);
+      setDismissed(raw ? new Set<string>(JSON.parse(raw)) : new Set());
+    } catch {
+      setDismissed(new Set());
+    }
+    setConfirmingId(null);
+  }, [bid]);
+
   const actions = allActions.filter((a) => !dismissed.has(a.id));
+
+  function dismiss(id: string) {
+    setDismissed((prev) => {
+      const next = new Set(prev).add(id);
+      try {
+        localStorage.setItem(`flowise.dismissedActions.${bid}`, JSON.stringify([...next]));
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }
 
   function chase(inv: EnrichedInvoice) {
     const msg = reminderTemplate(lang, name, inv);
@@ -50,7 +79,12 @@ export function ActionListCard() {
       const inv = invoices.find((i) => i.id === a.invoiceId);
       if (inv) chase(inv);
     } else if (a.actionType === "pay" && a.pay) {
-      // Log the bill payment as an expense and clear it off the list.
+      // Two-tap confirm: the first tap arms it, the second logs the expense.
+      // Prevents an accidental tap from writing an irreversible money-out entry.
+      if (confirmingId !== a.id) {
+        setConfirmingId(a.id);
+        return;
+      }
       addTransactions([
         {
           id: `P${Date.now().toString(36)}`,
@@ -67,7 +101,10 @@ export function ActionListCard() {
           tiedToStock: false,
         },
       ]);
-      setDismissed((prev) => new Set(prev).add(a.id));
+      setConfirmingId(null);
+      dismiss(a.id);
+      setToast(t("act.paidToast"));
+      window.setTimeout(() => setToast(null), 2500);
     } else if (a.actionType === "view") {
       scrollToSection("sec-forecast");
     }
@@ -131,21 +168,44 @@ export function ActionListCard() {
                 <p className="truncate text-body font-medium text-ink">{a.title}</p>
                 <p className="truncate text-caption text-muted">{a.sub}</p>
               </div>
-              <button
-                onClick={() => run(a)}
-                className={cn(
-                  "inline-flex shrink-0 items-center gap-1 rounded-pill px-4 py-2 text-caption font-semibold text-white transition",
-                  isChase ? "bg-success hover:bg-success/90" : "bg-olive hover:bg-olive-dark",
-                )}
-              >
-                {isChase ? <MessageCircle size={13} /> : null}
-                {a.actionLabel}
-                {!isChase && <ArrowRight size={13} />}
-              </button>
+              {a.actionType === "pay" && confirmingId === a.id ? (
+                <div className="flex shrink-0 items-center gap-1.5">
+                  <button
+                    onClick={() => run(a)}
+                    className="inline-flex items-center gap-1 rounded-pill bg-olive px-3.5 py-2 text-caption font-semibold text-white transition hover:bg-olive-dark"
+                  >
+                    <Check size={13} /> {t("act.confirmPaid")}
+                  </button>
+                  <button
+                    onClick={() => setConfirmingId(null)}
+                    className="rounded-pill border border-border px-3 py-2 text-caption font-medium text-muted transition hover:text-ink"
+                  >
+                    {t("act.cancel")}
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => run(a)}
+                  className={cn(
+                    "inline-flex shrink-0 items-center gap-1 rounded-pill px-4 py-2 text-caption font-semibold text-white transition",
+                    isChase ? "bg-success hover:bg-success/90" : "bg-olive hover:bg-olive-dark",
+                  )}
+                >
+                  {isChase ? <MessageCircle size={13} /> : null}
+                  {a.actionLabel}
+                  {!isChase && <ArrowRight size={13} />}
+                </button>
+              )}
             </motion.div>
           );
         })}
       </div>
+
+      {toast && (
+        <p className="mt-3 inline-flex items-center gap-1.5 text-caption font-medium text-success">
+          <CheckCircle2 size={14} /> {toast}
+        </p>
+      )}
     </Card>
   );
 }
