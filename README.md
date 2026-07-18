@@ -1,13 +1,17 @@
-# FloWise — AI Cashflow Copilot
+# FloWise — AI Cashflow Copilot for SMEs
 
-A premium single-page AI dashboard that helps a small business (fictional textile supplier **Aria Textiles**) understand and act on **cash-flow risk** using Gemma AI.
+A premium AI dashboard that helps **any small business** understand and act on **cash-flow risk** using Gemma AI. A business "comes in" via an onboarding entry — picking a preloaded **sample business** (Aria Textiles, Brew & Bloom Café, or Northline Studio) or creating its own **Workspace** by uploading/pasting invoices — then lands on a dashboard scoped to that business.
 
-The user scrolls one continuous, premium workspace:
+**Terminology:** a business that *uses* FloWise = a **Business / Workspace**; the people who *owe it money* = **clients**.
+
+The dashboard is one premium workspace:
 
 1. **Cash Flow Summary** — plain-language, AI-generated summary (in the AI Assistant card)
 2. **Flagged Invoices** — at-risk invoices with color-coded risk badges (green / yellow / red) and a one-line AI reason
 3. **Follow-Up Draft** — clicking a flagged invoice opens a side panel with an AI-drafted, editable follow-up + a Send button
 4. **In Progress** — sent follow-ups move to a tracker at the bottom
+
+A header **business switcher** swaps between businesses live; each keeps its own trackers.
 
 ## Tech stack
 
@@ -23,7 +27,7 @@ Apple / Linear / Stripe / Framer aesthetic: warm neutral `#F8F7F4` background, f
 
 ## How this repo is built
 
-The app is built **element by element** from a sequenced prompt pack. See **[PROMPTS.md](PROMPTS.md)** — paste E0 → E8 into your AI coding tool in order, committing after each.
+The app is built **element by element** from a sequenced prompt pack. See **[PROMPTS.md](PROMPTS.md)** — paste E0 → E9 into your AI coding tool in order, committing after each.
 
 ## Running (after E0+)
 
