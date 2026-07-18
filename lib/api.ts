@@ -117,3 +117,19 @@ export async function postFollowup(
     }),
   );
 }
+
+export async function postAsk(
+  active: ActiveBusiness,
+  question: string,
+): Promise<{ answer: string }> {
+  const base = active.isCustom
+    ? { business: { id: active.id, name: active.name, industry: active.industry, email: active.email, invoices: active.invoices ?? [] }, transactions: active.transactions ?? [], bankBalance: active.bankBalance ?? 0 }
+    : { businessId: active.id };
+  return readJson(
+    await fetch("/api/ask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...base, question }),
+    }),
+  );
+}
