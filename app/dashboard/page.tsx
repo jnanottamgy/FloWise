@@ -4,9 +4,13 @@ import { DashboardGuard } from "@/components/dashboard/DashboardGuard";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { MetricRow } from "@/components/dashboard/MetricRow";
 import { CashFlowRow } from "@/components/dashboard/CashFlowRow";
+import { FlaggedInvoices } from "@/components/dashboard/FlaggedInvoices";
+import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
+import { AIAssistantCard } from "@/components/dashboard/AIAssistantCard";
+import { DashboardStateProvider } from "@/lib/dashboardState";
 import { cn } from "@/lib/utils";
 
-// Labelled placeholders show the grid the content rows (E5–E8) fill.
+// Labelled placeholders show the grid the remaining rows fill.
 function Slot({ label, className }: { label: string; className?: string }) {
   return (
     <div
@@ -23,21 +27,26 @@ function Slot({ label, className }: { label: string; className?: string }) {
 export default function DashboardPage() {
   return (
     <DashboardGuard>
-      <DashboardShell>
-        {/* Row 1 — metrics */}
-        <MetricRow />
+      <DashboardStateProvider>
+        <DashboardShell>
+          {/* Row 1 — metrics */}
+          <MetricRow />
 
-        {/* Row 2 — chart / gauge / profile */}
-        <CashFlowRow />
+          {/* Row 2 — chart / gauge / profile */}
+          <CashFlowRow />
 
-        {/* Row 3 — flagged / activity / AI (E7) */}
-        <Slot label="Flagged Invoices (E7)" className="min-h-[300px] sm:col-span-2" />
-        <Slot label="Activity Feed (E7)" className="min-h-[300px]" />
-        <Slot label="AI Assistant (E7)" className="min-h-[300px]" />
+          {/* Row 3 — flagged / activity / AI */}
+          <FlaggedInvoices />
+          <ActivityFeed />
+          <AIAssistantCard />
 
-        {/* Row 4 — In Progress (E8) */}
-        <Slot label="In Progress tracker (E8)" className="sm:col-span-2 xl:col-span-4" />
-      </DashboardShell>
+          {/* Row 4 — In Progress (E8) */}
+          <Slot
+            label="In Progress tracker (E8)"
+            className="sm:col-span-2 xl:col-span-4"
+          />
+        </DashboardShell>
+      </DashboardStateProvider>
     </DashboardGuard>
   );
 }
