@@ -4,6 +4,7 @@ import { Bell, MessageSquare, Search } from "lucide-react";
 import { motion } from "framer-motion";
 import { Logo } from "@/components/brand/Logo";
 import { BusinessSwitcher } from "./BusinessSwitcher";
+import { ExportMenu } from "./ExportMenu";
 import { useBusiness } from "@/lib/businessContext";
 import { cn } from "@/lib/utils";
 
@@ -71,6 +72,7 @@ export function Header() {
         <CircleButton label="Search" className="sm:hidden">
           <Search size={18} />
         </CircleButton>
+        <ExportMenu />
         <CircleButton label="Messages" dot>
           <MessageSquare size={18} />
         </CircleButton>
