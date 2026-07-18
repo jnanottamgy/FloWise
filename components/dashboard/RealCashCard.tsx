@@ -40,6 +40,20 @@ export function RealCashCard({ metrics: m }: { metrics: MoneyMetrics }) {
   const tone = runwayTone(m.runwayWeeks);
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+
+  // No money recorded yet (e.g. a custom workspace built from invoices only):
+  // show a prompt instead of "₹0 free · ∞ weeks · Healthy".
+  if (m.moneyIn === 0 && m.moneyOut === 0 && m.bankBalance === 0) {
+    return (
+      <Card id="sec-money" className="scroll-mt-6 sm:col-span-2">
+        <h3 className="text-section font-semibold text-ink">Real cash</h3>
+        <p className="mt-2 text-caption leading-relaxed text-muted">
+          No transaction data yet — add money or upload a bank statement to see
+          your real free cash and runway.
+        </p>
+      </Card>
+    );
+  }
   const barPct = Math.max(
     4,
     Math.min(100, m.bankBalance ? (m.realFreeCash / m.bankBalance) * 100 : 0),

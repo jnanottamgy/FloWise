@@ -48,11 +48,13 @@ export function forecastCash(
   const threshold = Math.max(50000, Math.round(avgWeeklyOutflow));
 
   // One-time receivables expected around their due date (overdue → ~3 days).
+  // Nothing lands on day 0, so the "Today" bar equals the actual bank balance
+  // rather than optimistically counting money that hasn't arrived yet.
   const inflowByDay: Record<number, number> = {};
   for (const inv of unpaid) {
     let dd = daysBetween(TODAY, inv.dueDate);
     if (dd < 0) dd = 3;
-    dd = Math.max(0, Math.min(90, dd));
+    dd = Math.max(1, Math.min(90, dd));
     inflowByDay[dd] = (inflowByDay[dd] ?? 0) + inv.amount;
   }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useBusiness } from "./businessContext";
 import { useDashboardState } from "./dashboardState";
@@ -70,6 +70,7 @@ export function useMoney(): {
   data: TransactionsResponse | null;
   isLoading: boolean;
   isError: boolean;
+  refetch: () => void;
 } {
   const q = useTransactions();
   const { scopeOverrides, addedTxns } = useDashboardState();
@@ -80,14 +81,24 @@ export function useMoney(): {
     const transactions = merged.map((t) =>
       scopeOverrides[t.id] ? { ...t, scope: scopeOverrides[t.id] } : t,
     );
+    // Money the owner has recorded since the seed balance must move the bank
+    // balance too, else the hero "available cash" and runway ignore it. Sum ONLY
+    // the added txns (not the merged list) so seed data isn't double-counted.
+    const addedNet = addedTxns.reduce(
+      (s, t) => s + (t.direction === "in" ? t.amount : -t.amount),
+      0,
+    );
     return {
       business: q.data.business,
       transactions,
-      metrics: computeMoneyMetrics(transactions, q.data.metrics.bankBalance),
+      metrics: computeMoneyMetrics(
+        transactions,
+        q.data.metrics.bankBalance + addedNet,
+      ),
     };
   }, [q.data, scopeOverrides, addedTxns]);
 
-  return { data, isLoading: q.isLoading, isError: q.isError };
+  return { data, isLoading: q.isLoading, isError: q.isError, refetch: q.refetch };
 }
 
 export interface Overview {
@@ -97,6 +108,8 @@ export interface Overview {
   forecast: Forecast | null;
   actions: Action[];
   isLoading: boolean;
+  isError: boolean;
+  refetch: () => void;
 }
 
 /** Everything the calm "home" view needs: money + invoices → forecast + actions. */
@@ -105,6 +118,11 @@ export function useOverview(): Overview {
   const inv = useInvoices();
   const { sentIds } = useDashboardState();
   const { lang } = useLang();
+
+  const refetch = useCallback(() => {
+    money.refetch();
+    inv.refetch();
+  }, [money, inv]);
 
   return useMemo(() => {
     const invoices = inv.data?.invoices ?? [];
@@ -127,6 +145,18 @@ export function useOverview(): Overview {
       forecast,
       actions,
       isLoading: money.isLoading || inv.isLoading,
+      isError: money.isError || inv.isError,
+      refetch,
     };
-  }, [money.data, money.isLoading, inv.data, inv.isLoading, sentIds, lang]);
+  }, [
+    money.data,
+    money.isLoading,
+    money.isError,
+    inv.data,
+    inv.isLoading,
+    inv.isError,
+    sentIds,
+    lang,
+    refetch,
+  ]);
 }

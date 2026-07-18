@@ -8,6 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import type { Business } from "./types";
 
 /** What the dashboard needs to know about the currently-open workspace.
@@ -46,6 +47,7 @@ const CUSTOM_KEY = "flowise.customBusinesses";
 const BusinessContext = createContext<BusinessContextValue | null>(null);
 
 export function BusinessProvider({ children }: { children: ReactNode }) {
+  const qc = useQueryClient();
   const [ready, setReady] = useState(false);
   const [activeBusiness, setActive] = useState<ActiveBusiness | null>(null);
   const [customBusinesses, setCustom] = useState<Business[]>([]);
@@ -89,20 +91,26 @@ export function BusinessProvider({ children }: { children: ReactNode }) {
     [],
   );
 
-  const addCustomBusiness = useCallback((b: Business) => {
-    setCustom((prev) => {
-      const others = prev.filter((x) => x.id !== b.id);
-      return [...others, b];
-    });
-    setActive({
-      id: b.id,
-      name: b.name,
-      industry: b.industry,
-      email: b.email,
-      isCustom: true,
-      invoices: b.invoices,
-    });
-  }, []);
+  const addCustomBusiness = useCallback(
+    (b: Business) => {
+      setCustom((prev) => {
+        const others = prev.filter((x) => x.id !== b.id);
+        return [...others, b];
+      });
+      setActive({
+        id: b.id,
+        name: b.name,
+        industry: b.industry,
+        email: b.email,
+        isCustom: true,
+        invoices: b.invoices,
+      });
+      // Custom-workspace content travels in the POST body, so a re-import under
+      // the same id must drop any cached (stale) invoices/metrics for it.
+      qc.invalidateQueries({ predicate: (q) => q.queryKey[1] === b.id });
+    },
+    [qc],
+  );
 
   const setActiveById = useCallback(
     (id: string) => {

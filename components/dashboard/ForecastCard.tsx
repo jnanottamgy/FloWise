@@ -23,10 +23,26 @@ function Horizon({ label, value }: { label: string; value: number }) {
 }
 
 export function ForecastCard() {
-  const { forecast: f } = useOverview();
+  const { forecast: f, isError, isLoading, refetch } = useOverview();
   const { t } = useLang();
 
   if (!f) {
+    if (isError && !isLoading) {
+      return (
+        <Card
+          id="sec-forecast"
+          className="scroll-mt-6 flex h-80 flex-col items-center justify-center gap-3 text-center sm:col-span-2"
+        >
+          <p className="text-body text-muted">{t("state.error")}</p>
+          <button
+            onClick={() => refetch()}
+            className="rounded-pill border border-olive/40 px-4 py-2 text-caption font-medium text-olive transition hover:bg-olive/10"
+          >
+            {t("state.retry")}
+          </button>
+        </Card>
+      );
+    }
     return <Card id="sec-forecast" className="scroll-mt-6 h-80 animate-pulse bg-black/[0.02] sm:col-span-2" />;
   }
 

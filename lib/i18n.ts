@@ -179,6 +179,24 @@ export const STRINGS: Record<string, Entry> = {
   },
   "fab.add": { en: "Add money", hi: "पैसा जोड़ें", kn: "ಹಣ ಸೇರಿಸಿ" },
   "num.toDo": { en: "{n} to do", hi: "{n} काम", kn: "{n} ಕೆಲಸ" },
+
+  // Loading / error / empty states
+  "state.error": {
+    en: "Couldn't load your numbers.",
+    hi: "आपके आँकड़े लोड नहीं हो पाए।",
+    kn: "ನಿಮ್ಮ ಸಂಖ್ಯೆಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಾಗಲಿಲ್ಲ.",
+  },
+  "state.retry": { en: "Try again", hi: "फिर कोशिश करें", kn: "ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ" },
+  "state.noData": {
+    en: "No money recorded yet",
+    hi: "अभी कोई पैसा दर्ज नहीं",
+    kn: "ಇನ್ನೂ ಯಾವುದೇ ಹಣ ದಾಖಲಾಗಿಲ್ಲ",
+  },
+  "state.noDataSub": {
+    en: "Add a transaction or upload a bank statement to see your real cash.",
+    hi: "अपना असली पैसा देखने के लिए एक लेन-देन जोड़ें या बैंक स्टेटमेंट अपलोड करें।",
+    kn: "ನಿಮ್ಮ ನಿಜವಾದ ಹಣ ನೋಡಲು ಒಂದು ವಹಿವಾಟು ಸೇರಿಸಿ ಅಥವಾ ಬ್ಯಾಂಕ್ ಸ್ಟೇಟ್‌ಮೆಂಟ್ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ.",
+  },
 };
 
 export function tf(lang: Lang, key: string, params?: Record<string, string | number>): string {

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Landmark, Package, Repeat } from "lucide-react";
+import { ChevronDown, Landmark, Package, Repeat, WalletMinimal } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useOverview } from "@/lib/dashboardData";
 import { useLang } from "@/lib/language";
@@ -10,13 +10,48 @@ import { formatINR } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export function CashTodayHero() {
-  const { metrics: m, forecast } = useOverview();
+  const { metrics: m, forecast, isError, isLoading, refetch } = useOverview();
   const { t } = useLang();
   const [open, setOpen] = useState(false);
 
+  // Distinguish a failed load from a still-loading one so the cash number never
+  // spins forever on a network error.
   if (!m) {
+    if (isError && !isLoading) {
+      return (
+        <Card
+          id="sec-home"
+          className="scroll-mt-6 flex flex-col items-center gap-3 py-10 text-center sm:col-span-2 xl:col-span-4"
+        >
+          <p className="text-body text-muted">{t("state.error")}</p>
+          <button
+            onClick={() => refetch()}
+            className="rounded-pill bg-olive px-5 py-2.5 text-body font-semibold text-white transition hover:bg-olive-dark"
+          >
+            {t("state.retry")}
+          </button>
+        </Card>
+      );
+    }
     return (
       <Card id="sec-home" className="scroll-mt-6 h-56 animate-pulse bg-black/[0.02] sm:col-span-2 xl:col-span-4" />
+    );
+  }
+
+  // A workspace with no recorded money yet (e.g. a custom business created from
+  // invoices only) — don't show "₹0 · enough for 90+ days".
+  if (m.moneyIn === 0 && m.moneyOut === 0 && m.bankBalance === 0) {
+    return (
+      <Card
+        id="sec-home"
+        className="scroll-mt-6 flex flex-col items-center gap-2 py-10 text-center sm:col-span-2 xl:col-span-4"
+      >
+        <span className="grid h-12 w-12 place-items-center rounded-full bg-olive/10 text-olive">
+          <WalletMinimal size={22} />
+        </span>
+        <p className="text-section font-semibold text-ink">{t("state.noData")}</p>
+        <p className="max-w-sm text-caption text-muted">{t("state.noDataSub")}</p>
+      </Card>
     );
   }
 

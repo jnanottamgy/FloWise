@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, Download, FileSpreadsheet, FileText } from "lucide-react";
-import { useInsight, useInvoices, useSummary, useTransactions } from "@/lib/dashboardData";
+import { useInsight, useInvoices, useMoney, useSummary } from "@/lib/dashboardData";
 import { useBusiness } from "@/lib/businessContext";
 import {
   invoicesCSV,
@@ -51,14 +51,16 @@ export function ExportMenu() {
   const { activeBusiness } = useBusiness();
   const { data: summary } = useSummary();
   const { data: invoices } = useInvoices();
-  const { data: txns } = useTransactions();
+  // Merged data (manual entries + Mine-vs-Business corrections) so the exported
+  // report matches exactly what the owner sees on the dashboard.
+  const { data: money } = useMoney();
   const { data: insight } = useInsight();
 
   const slug = (activeBusiness?.name ?? "flowise").toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
   function exportTransactionsCSV() {
-    if (!txns) return;
-    download(`${slug}-transactions.csv`, transactionsCSV(txns.transactions), "text/csv");
+    if (!money) return;
+    download(`${slug}-transactions.csv`, transactionsCSV(money.transactions), "text/csv");
     setOpen(false);
   }
   function exportInvoicesCSV() {
@@ -79,7 +81,7 @@ export function ExportMenu() {
       generatedOn,
       aiSummary: insight?.aiSummary || summaryTemplate(summary.business.name, summary.metrics),
       summary: summary.metrics,
-      money: txns?.metrics,
+      money: money?.metrics,
       invoices: invoices.invoices,
     };
     printHTML(reportHTML(data));
