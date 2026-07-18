@@ -84,3 +84,74 @@ export interface InvoicesResponse {
   business: BusinessMeta;
   invoices: EnrichedInvoice[];
 }
+
+// ---------------------------------------------------------------------------
+// Transactions — all money movement (UPI / bank / cash), business + personal.
+// ---------------------------------------------------------------------------
+
+export type TxnDirection = "in" | "out";
+export type TxnMode = "upi" | "neft" | "imps" | "rtgs" | "card" | "cash" | "cheque";
+export type TxnScope = "business" | "personal" | "unsure";
+export type TxnSource = "bank" | "upi" | "cash" | "manual";
+
+export interface Transaction {
+  id: string;
+  date: string; // YYYY-MM-DD
+  description: string; // raw narration
+  counterparty: string;
+  amount: number; // positive
+  direction: TxnDirection;
+  mode: TxnMode;
+  scope: TxnScope;
+  category: string; // materials, rent, utilities, salaries, tax, software, labour, sales, groceries, education, entertainment, fuel, dining, other
+  source: TxnSource;
+  recurring: boolean;
+  tiedToStock: boolean;
+}
+
+export interface RecurringItem {
+  counterparty: string;
+  monthlyAmount: number;
+  occurrences: number;
+  category: string;
+  scope: TxnScope;
+}
+
+export interface CategoryTotal {
+  category: string;
+  amount: number;
+}
+
+export interface ModeTotal {
+  mode: TxnMode;
+  inAmount: number;
+  outAmount: number;
+}
+
+export interface MoneyMetrics {
+  bankBalance: number;
+  moneyIn: number;
+  moneyOut: number;
+  net: number;
+  businessIn: number;
+  businessOut: number;
+  personalOut: number;
+  unsureCount: number;
+  // Real-cash / runway
+  lockedInStock: number;
+  committedRecurring: number;
+  realFreeCash: number;
+  avgWeeklyOutflow: number;
+  runwayWeeks: number;
+  // Breakdowns
+  byMode: ModeTotal[];
+  byCategory: CategoryTotal[]; // business outflow by category (tax drawer)
+  recurring: RecurringItem[];
+  recurringMonthlyTotal: number;
+}
+
+export interface TransactionsResponse {
+  business: BusinessMeta;
+  transactions: Transaction[];
+  metrics: MoneyMetrics;
+}
