@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowDownLeft, ArrowUpRight } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, Pencil } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { useDashboardState } from "@/lib/dashboardState";
 import { formatDate, formatINR } from "@/lib/format";
 import { MODE_LABEL, SCOPE_LABEL } from "@/lib/labels";
 import { cn } from "@/lib/utils";
@@ -22,6 +23,7 @@ export function TransactionsCard({
   transactions: Transaction[];
 }) {
   const [filter, setFilter] = useState<Filter>("all");
+  const { setScope } = useDashboardState();
 
   const rows = [...transactions]
     .filter((t) => filter === "all" || t.scope === filter)
@@ -85,19 +87,23 @@ export function TransactionsCard({
                 <p className="text-caption text-muted">{formatDate(t.date)}</p>
               </div>
 
-              <div className="hidden items-center gap-1.5 sm:flex">
-                <span className="rounded-pill bg-black/[0.04] px-2 py-0.5 text-[11px] font-medium text-muted">
-                  {MODE_LABEL[t.mode]}
-                </span>
-                <span
-                  className={cn(
-                    "rounded-pill px-2 py-0.5 text-[11px] font-medium",
-                    SCOPE_CLS[t.scope],
-                  )}
-                >
-                  {SCOPE_LABEL[t.scope]}
-                </span>
-              </div>
+              <span className="hidden rounded-pill bg-black/[0.04] px-2 py-0.5 text-[11px] font-medium text-muted sm:inline">
+                {MODE_LABEL[t.mode]}
+              </span>
+              {/* tap to switch business / personal */}
+              <button
+                onClick={() =>
+                  setScope(t.id, t.scope === "business" ? "personal" : "business")
+                }
+                title="Tap to mark business or personal"
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-pill px-2 py-0.5 text-[11px] font-medium transition hover:ring-1 hover:ring-black/10",
+                  SCOPE_CLS[t.scope],
+                )}
+              >
+                {SCOPE_LABEL[t.scope]}
+                <Pencil size={9} className="opacity-50" />
+              </button>
 
               <span
                 className={cn(

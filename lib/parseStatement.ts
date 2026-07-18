@@ -78,7 +78,8 @@ export function parseQuickEntry(text: string): Transaction | null {
     amount,
     direction,
     mode: guessMode(t),
-    scope: guessScope(t),
+    // Leave manual entries for the owner to classify (business vs personal).
+    scope: "unsure",
     category: direction === "in" ? "sales" : guessCategory(t),
     source: "manual",
     recurring: false,

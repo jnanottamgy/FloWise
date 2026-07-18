@@ -8,7 +8,6 @@ import { CashFlowRow } from "./CashFlowRow";
 import { MoneySection } from "./MoneySection";
 import { FlaggedInvoices } from "./FlaggedInvoices";
 import { ActivityFeed } from "./ActivityFeed";
-import { AIAssistantCard } from "./AIAssistantCard";
 import { ChaseListCard } from "./ChaseListCard";
 import { TemplatesCard } from "./TemplatesCard";
 import { CreditCheckCard } from "./CreditCheckCard";
@@ -58,7 +57,6 @@ export function MoreDetails() {
               <MoneySection />
               <FlaggedInvoices />
               <ActivityFeed />
-              <AIAssistantCard />
               <ChaseListCard />
               <TemplatesCard />
               <CreditCheckCard />
