@@ -9,6 +9,7 @@ import { normalizeBusiness } from "@/lib/resolveBusiness";
 import { formatINR } from "@/lib/format";
 import { categoryLabel } from "@/lib/labels";
 import { deterministicAnswer, type AskContext } from "@/lib/askAnswer";
+import { callerKey, rateLimit } from "@/lib/ratelimit";
 import type { Lang } from "@/lib/i18n";
 import type { Business, MoneyMetrics, Transaction } from "@/lib/types";
 
@@ -49,7 +50,8 @@ function buildContext(
 
 export async function POST(req: NextRequest) {
   const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
-  const question = typeof body.question === "string" ? body.question.trim() : "";
+  const question =
+    typeof body.question === "string" ? body.question.trim().slice(0, 500) : "";
   if (!question) {
     return NextResponse.json({ error: "Missing question" }, { status: 400 });
   }
@@ -70,7 +72,8 @@ export async function POST(req: NextRequest) {
     money = computeMoneyMetrics(getTransactions(business.id), getBankBalance(business.id));
   } else if (Array.isArray(body.transactions)) {
     money = computeMoneyMetrics(
-      body.transactions as Transaction[],
+      // Cap an untrusted client payload so a huge array can't DoS the compute.
+      (body.transactions as Transaction[]).slice(0, 5000),
       typeof body.bankBalance === "number" ? body.bankBalance : 0,
     );
   }
@@ -112,6 +115,12 @@ export async function POST(req: NextRequest) {
     `Answer the owner's question using ONLY the data below. Reply in ${langName}, in ONE short paragraph ` +
     `(max 3 sentences), in simple language, keeping the rupee figures. If the data does not contain the answer, say so briefly.\n\n` +
     `DATA:\n${context}\n\nQUESTION: ${question}`;
+
+  // Cap AI-route usage per caller; when tripped, serve the (instant, correct)
+  // deterministic answer instead of burning the owner's Gemini quota.
+  if (!rateLimit(`ask:${callerKey(req)}`)) {
+    return NextResponse.json({ answer: fallback });
+  }
 
   const answer = await callGemma(prompt, fallback);
   return NextResponse.json({ answer });

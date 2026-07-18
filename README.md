@@ -18,8 +18,8 @@ A header **business switcher** swaps between businesses live; each keeps its own
 - **Frontend:** Next.js (App Router) + TypeScript + Tailwind CSS + Shadcn/ui
 - **Motion / charts / icons:** Framer Motion · Recharts · Lucide React
 - **Data fetching:** React Query
-- **AI:** Gemma via the Gemini API (`gemma-4-26b-a4b-it`), called server-side from Next.js route handlers
-- **Data:** static JSON (`data/invoices.json`) — no database
+- **AI:** Gemma via the Gemini API (`gemma-4-26b-a4b-it`), called server-side from Next.js route handlers, with deterministic fallbacks so it never leaks reasoning or blocks the UI
+- **Data:** static JSON seeds (`data/businesses.json`, `data/transactions.json`, `data/network.json`) — no database; user edits live in `localStorage`
 
 ## Design language
 
@@ -38,7 +38,7 @@ echo "GEMINI_API_KEY=your_key_here" > .env.local
 npm run dev
 ```
 
-Open http://localhost:3000.
+Open http://localhost:3210. (Port 3210 is set in `package.json`; `npm run typecheck` runs the TypeScript check.)
 
 ## Notes
 

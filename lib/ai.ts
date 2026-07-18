@@ -188,7 +188,7 @@ export async function generateSummary(
   business: Business,
   m: Metrics,
 ): Promise<string> {
-  const key = `${business.id}|${m.outstanding}|${m.overdue}|${m.flaggedCount}`;
+  const key = `${business.id}|${m.outstanding}|${m.overdue}|${m.flaggedCount}|${m.collected90d}|${m.collectionRatePct}`;
   const cached = summaryCache.get(key);
   if (cached) return cached;
 
@@ -206,7 +206,13 @@ export async function generateSummary(
     `Speak directly to the owner. End with one gentle, concrete suggestion.`;
 
   const text = await callGemma(prompt, fallback);
-  summaryCache.set(key, text);
+  // Only cache a genuine model answer — caching the fallback would permanently
+  // disable the AI summary for this business after a single timeout. Keep the
+  // map bounded so it can't grow without limit on a long-lived server.
+  if (text !== fallback) {
+    if (summaryCache.size > 200) summaryCache.clear();
+    summaryCache.set(key, text);
+  }
   return text;
 }
 
