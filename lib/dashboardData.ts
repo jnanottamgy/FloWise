@@ -5,7 +5,13 @@ import { useQuery } from "@tanstack/react-query";
 import { useBusiness } from "./businessContext";
 import { useDashboardState } from "./dashboardState";
 import { computeMoneyMetrics } from "./transactions";
-import type { TransactionsResponse } from "./types";
+import { forecastCash, type Forecast } from "./forecast";
+import { buildActions, type Action } from "./actions";
+import type {
+  EnrichedInvoice,
+  MoneyMetrics,
+  TransactionsResponse,
+} from "./types";
 import {
   fetchInsight,
   fetchInvoices,
@@ -81,4 +87,38 @@ export function useMoney(): {
   }, [q.data, scopeOverrides, addedTxns]);
 
   return { data, isLoading: q.isLoading, isError: q.isError };
+}
+
+export interface Overview {
+  metrics: MoneyMetrics | null;
+  invoices: EnrichedInvoice[];
+  unpaid: EnrichedInvoice[];
+  forecast: Forecast | null;
+  actions: Action[];
+  isLoading: boolean;
+}
+
+/** Everything the calm "home" view needs: money + invoices → forecast + actions. */
+export function useOverview(): Overview {
+  const money = useMoney();
+  const inv = useInvoices();
+  const { sentIds } = useDashboardState();
+
+  return useMemo(() => {
+    const invoices = inv.data?.invoices ?? [];
+    const unpaid = invoices.filter((i) => i.status === "unpaid");
+    const metrics = money.data?.metrics ?? null;
+    const forecast = metrics
+      ? forecastCash(metrics.bankBalance, metrics.avgWeeklyOutflow, unpaid)
+      : null;
+    const actions = buildActions(invoices, metrics, forecast, sentIds);
+    return {
+      metrics,
+      invoices,
+      unpaid,
+      forecast,
+      actions,
+      isLoading: money.isLoading || inv.isLoading,
+    };
+  }, [money.data, money.isLoading, inv.data, inv.isLoading, sentIds]);
 }

@@ -4,14 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
-  BarChart3,
-  FileText,
   LayoutGrid,
+  ListChecks,
   LogOut,
-  Receipt,
+  MoreHorizontal,
   Settings,
-  Sparkles,
-  Wallet,
+  TrendingUp,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
@@ -25,12 +24,11 @@ interface NavItem {
 }
 
 const NAV: NavItem[] = [
-  { icon: LayoutGrid, label: "Dashboard", target: "top" },
-  { icon: Wallet, label: "Money", target: "sec-money" },
-  { icon: FileText, label: "Invoices", target: "sec-invoices" },
-  { icon: Sparkles, label: "AI Workspace", target: "sec-ai" },
-  { icon: BarChart3, label: "Analytics", target: "sec-analytics" },
-  { icon: Receipt, label: "Transactions", target: "sec-transactions" },
+  { icon: LayoutGrid, label: "Home", target: "top" },
+  { icon: ListChecks, label: "To-do", target: "sec-actions" },
+  { icon: Users, label: "Customers", target: "sec-in" },
+  { icon: TrendingUp, label: "Cash flow", target: "sec-forecast" },
+  { icon: MoreHorizontal, label: "More", target: "sec-more" },
 ];
 
 export function scrollToSection(target: string) {

@@ -2,24 +2,22 @@
 
 import { useState } from "react";
 import {
-  BarChart3,
-  FileText,
   LayoutGrid,
-  Receipt,
-  Sparkles,
-  Wallet,
+  ListChecks,
+  MoreHorizontal,
+  TrendingUp,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { scrollToSection } from "./Sidebar";
 
 const ITEMS: { icon: LucideIcon; label: string; target: string }[] = [
-  { icon: LayoutGrid, label: "Dashboard", target: "top" },
-  { icon: Wallet, label: "Money", target: "sec-money" },
-  { icon: FileText, label: "Invoices", target: "sec-invoices" },
-  { icon: Sparkles, label: "AI Workspace", target: "sec-ai" },
-  { icon: BarChart3, label: "Analytics", target: "sec-analytics" },
-  { icon: Receipt, label: "Transactions", target: "sec-transactions" },
+  { icon: LayoutGrid, label: "Home", target: "top" },
+  { icon: ListChecks, label: "To-do", target: "sec-actions" },
+  { icon: Users, label: "Customers", target: "sec-in" },
+  { icon: TrendingUp, label: "Cash flow", target: "sec-forecast" },
+  { icon: MoreHorizontal, label: "More", target: "sec-more" },
 ];
 
 /** Collapsed sidebar for small screens: a horizontal icon rail. */
